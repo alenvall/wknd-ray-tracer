@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace WeekendRayTracer
 {
@@ -11,7 +13,8 @@ namespace WeekendRayTracer
         {
             Log("Creating image...");
 
-            Console.Write($"P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT} \n255\n");
+            var lines = new List<string>();
+            lines.Add($"P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT} \n255\n");
 
             var remaining = IMAGE_HEIGHT;
             for (int j = IMAGE_HEIGHT - 1; j > 0; --j)
@@ -26,21 +29,28 @@ namespace WeekendRayTracer
                     var ig = (int)(255.999 * g);
                     var ib = (int)(255.999 * b);
 
-                    Console.Write($"{ir} {ig} {ib}\n");
+                    lines.Add($"{ir} {ig} {ib}\n");
                 }
 
                 remaining = j;
-                Console.Error.Write("\rScanlines remaining: {0}", remaining);
+                Console.Write("\rScanlines remaining: {0}    ", remaining);
             }
+            Console.Write("\n\n");
 
-            Console.Error.Write("\rScanlines remaining: {0}\n\n", remaining);
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(Directory.GetCurrentDirectory(), "image.ppm")))
+            {
+                foreach (string line in lines)
+                {
+                    outputFile.Write(line);
+                }
+            }
 
             Log("Done!");
         }
 
         private static void Log(string text)
         {
-            Console.Error.WriteLine(text);
+            Console.WriteLine(text);
         }
     }
 }
