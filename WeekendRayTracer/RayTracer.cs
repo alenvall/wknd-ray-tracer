@@ -4,53 +4,78 @@ using System.IO;
 
 namespace WeekendRayTracer
 {
-    class RayTracer
+    public class RayTracer
     {
-        private static readonly int IMAGE_WIDTH = 256;
-        private static readonly int IMAGE_HEIGHT = 256;
-        private static List<string> lines;
+        private List<string> lines;
 
-        static void Main(string[] args)
+        public void Run()
         {
+            // Image
+            var aspectRatio = 16.0 / 9.0;
+            var imageWidth = 400;
+            var imageHeight = (int)(imageWidth / aspectRatio);
+
+            // Camera
+            var viewportHeight = 2.0;
+            var viewportWidth = aspectRatio * viewportHeight;
+            var focalLength = 1.0;
+
+            var origin = new Vec3(0, 0, 0);
+            var horizontal = new Vec3(viewportWidth, 0, 0);
+            var vertical = new Vec3(0, viewportHeight, 0);
+            var lowerLeftCorner = origin - horizontal / 2 - vertical / 2 - new Vec3(0, 0, focalLength);
+
             Log("Creating image...");
 
-            lines = new List<string>();
-            lines.Add($"P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT} \n255\n");
-
-            var remaining = IMAGE_HEIGHT;
-            for (int j = IMAGE_HEIGHT - 1; j > 0; --j)
+            lines = new List<string>
             {
-                for (int i = 0; i < IMAGE_WIDTH; ++i)
+                $"P3\n{imageWidth} {imageHeight} \n255\n"
+            };
+
+            for (int j = imageHeight - 1; j > 0; --j)
+            {
+                Console.Write("\rScanlines remaining: {0}    ", j);
+
+                for (int i = 0; i < imageWidth; ++i)
                 {
-                    var color = new Vec3((double)i / (IMAGE_WIDTH - 1), (double)j / (IMAGE_HEIGHT - 1), 0.25);
+                    var u = (double)i / (imageWidth - 1);
+                    var v = (double)j / (imageHeight - 1);
+                    var ray = new Ray(origin, lowerLeftCorner + u * horizontal + v * vertical - origin);
+                    var color = RayColor(ray);
                     WriteColor(color);
                 }
-
-                remaining = j;
-                Console.Write("\rScanlines remaining: {0}    ", remaining);
             }
-            Console.Write("\rScanlines remaining: {0}    ", 0);
             Console.Write("\n\n");
 
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(Directory.GetCurrentDirectory(), "image.ppm")))
-            {
-                foreach (string line in lines)
-                {
-                    outputFile.Write(line);
-                }
-            }
-
+            PrintFile();
             Log("Done!");
         }
 
-        private static void Log(object text)
+        private Vec3 RayColor(Ray ray)
+        {
+            var directionUnit = ray.Direction.Unit;
+
+            var t = 0.5 * (directionUnit.Y + 1.0);
+            return (1.0 - t) * new Vec3(1.0, 1.0, 1.0) + t * new Vec3(0.5, 0.7, 1.0);
+        }
+
+        private void Log(object text)
         {
             Console.WriteLine(text);
         }
 
-        private static void WriteColor(Vec3 color)
+        private void WriteColor(Vec3 color)
         {
             lines.Add($"{(int)(255.999 * color.X)} {(int)(255.999 * color.Y)} {(int)(255.999 * color.Z)}\n");
+        }
+
+        private void PrintFile()
+        {
+            using StreamWriter outputFile = new StreamWriter(Path.Combine(Directory.GetCurrentDirectory(), "image.ppm"));
+            foreach (string line in lines)
+            {
+                outputFile.Write(line);
+            }
         }
     }
 }

@@ -17,7 +17,8 @@ namespace WeekendRayTracer
 
         public double LengthSquared => X * X + Y * Y + Z * Z;
         public double Length => Math.Sqrt(LengthSquared);
-        public Vec3 Unit() => new Vec3(X, Y, Z) / Length;
+        public Vec3 Unit => new Vec3(X, Y, Z) / Length;
+
         public double Dot(Vec3 v) => X * v.X + Y * v.Y + Z * v.Z;
         public Vec3 Cross(Vec3 v) => new Vec3(Y * v.Z - Z * v.Y, Z * v.X - X * v.Z, X * v.Y - Y * v.X);
         public override string ToString() => $"{X}, {Y}, {Z}";
