@@ -8,12 +8,13 @@ namespace WeekendRayTracer
     {
         private static readonly int IMAGE_WIDTH = 256;
         private static readonly int IMAGE_HEIGHT = 256;
+        private static List<string> lines;
 
         static void Main(string[] args)
         {
             Log("Creating image...");
 
-            var lines = new List<string>();
+            lines = new List<string>();
             lines.Add($"P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT} \n255\n");
 
             var remaining = IMAGE_HEIGHT;
@@ -21,20 +22,14 @@ namespace WeekendRayTracer
             {
                 for (int i = 0; i < IMAGE_WIDTH; ++i)
                 {
-                    var r = (double)i / (IMAGE_WIDTH - 1);
-                    var g = (double)j / (IMAGE_HEIGHT - 1);
-                    var b = 0.25;
-
-                    var ir = (int)(255.999 * r);
-                    var ig = (int)(255.999 * g);
-                    var ib = (int)(255.999 * b);
-
-                    lines.Add($"{ir} {ig} {ib}\n");
+                    var color = new Vec3((double)i / (IMAGE_WIDTH - 1), (double)j / (IMAGE_HEIGHT - 1), 0.25);
+                    WriteColor(color);
                 }
 
                 remaining = j;
                 Console.Write("\rScanlines remaining: {0}    ", remaining);
             }
+            Console.Write("\rScanlines remaining: {0}    ", 0);
             Console.Write("\n\n");
 
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(Directory.GetCurrentDirectory(), "image.ppm")))
@@ -48,9 +43,14 @@ namespace WeekendRayTracer
             Log("Done!");
         }
 
-        private static void Log(string text)
+        private static void Log(object text)
         {
             Console.WriteLine(text);
+        }
+
+        private static void WriteColor(Vec3 color)
+        {
+            lines.Add($"{(int)(255.999 * color.X)} {(int)(255.999 * color.Y)} {(int)(255.999 * color.Z)}\n");
         }
     }
 }
