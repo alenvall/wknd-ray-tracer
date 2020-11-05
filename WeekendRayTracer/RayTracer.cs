@@ -18,6 +18,7 @@ namespace WeekendRayTracer
             var imageWidth = 400;
             var imageHeight = (int)(imageWidth / aspectRatio);
             int samplesPerPixel = 100;
+            int maxDepth = 50;
 
             // World
             HittableList world = new HittableList();
@@ -44,25 +45,33 @@ namespace WeekendRayTracer
                         var u = (i + rand.NextDouble()) / (imageWidth - 1);
                         var v = (j + rand.NextDouble()) / (imageHeight - 1);
                         var ray = cam.GetRay(u, v);
-                        pixelColor += RayColor(ray, world);
+                        pixelColor += RayColor(ray, world, maxDepth);
                     }
 
                     WriteColor(pixelColor, samplesPerPixel);
                 }
             }
             Console.Write("\rScanlines remaining: {0}    ", 0);
-            Console.Write("\n\n");
+            Log("\n\n");
 
             PrintFile();
             Log("Done!");
+
+            Console.ReadLine();
         }
 
-        private Vec3 RayColor(Ray ray, IHittable world)
+        private Vec3 RayColor(Ray ray, IHittable world, int depth)
         {
-            var record = world.Hit(ray, 0, double.PositiveInfinity);
+            if (depth <= 0)
+            {
+                return new Vec3(0, 0, 0);
+            }
+
+            var record = world.Hit(ray, 0.001, double.PositiveInfinity);
             if (record != null)
             {
-                return 0.5 * (record.Normal + new Vec3(1, 1, 1));
+                var target = record.P + record.Normal + Vec3.RandomUnitVector();
+                return 0.5 * RayColor(new Ray(record.P, target - record.P), world, depth - 1);
             }
 
             var directionUnit = ray.Direction.Unit;
@@ -82,9 +91,9 @@ namespace WeekendRayTracer
             var b = pixelColor.Z;
 
             var scale = 1.0 / samplesPerPixel;
-            r *= scale;
-            g *= scale;
-            b *= scale;
+            r = Math.Sqrt(scale * r);
+            g = Math.Sqrt(scale * g);
+            b = Math.Sqrt(scale * b);
 
             lines.Add($"{(int)(256 * Math.Clamp(r, 0.0, 0.999))} {(int)(256 * Math.Clamp(g, 0.0, 0.999))} {(int)(256 * Math.Clamp(b, 0.0, 0.999))}\n");
         }
