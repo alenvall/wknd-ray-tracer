@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WeekendRayTracer
+namespace WeekendRayTracer.Models
 {
     public class Vec3
     {
@@ -8,6 +8,7 @@ namespace WeekendRayTracer
         public double Y { get; set; }
         public double Z { get; set; }
 
+        public static Vec3 operator -(Vec3 u) => new Vec3(-u.X, -u.Y, -u.Z);
         public static Vec3 operator +(Vec3 u, Vec3 v) => new Vec3(u.X + v.X, u.Y + v.Y, u.Z + v.Z);
         public static Vec3 operator -(Vec3 u, Vec3 v) => new Vec3(u.X - v.X, u.Y - v.Y, u.Z - v.Z);
         public static Vec3 operator *(Vec3 u, Vec3 v) => new Vec3(u.X * v.X, u.Y * v.Y, u.Z * v.Z);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using WeekendRayTracer.Models;
 
 namespace WeekendRayTracer
 {
@@ -14,6 +15,11 @@ namespace WeekendRayTracer
             var aspectRatio = 16.0 / 9.0;
             var imageWidth = 400;
             var imageHeight = (int)(imageWidth / aspectRatio);
+
+            // World
+            HittableList world = new HittableList();
+            world.Add(new Sphere(new Vec3(0, 0, -1), 0.5));
+            world.Add(new Sphere(new Vec3(0, -100.5, -1), 100));
 
             // Camera
             var viewportHeight = 2.0;
@@ -41,7 +47,7 @@ namespace WeekendRayTracer
                     var u = (double)i / (imageWidth - 1);
                     var v = (double)j / (imageHeight - 1);
                     var ray = new Ray(origin, lowerLeftCorner + u * horizontal + v * vertical - origin);
-                    var color = RayColor(ray);
+                    var color = RayColor(ray, world);
                     WriteColor(color);
                 }
             }
@@ -51,10 +57,15 @@ namespace WeekendRayTracer
             Log("Done!");
         }
 
-        private Vec3 RayColor(Ray ray)
+        private Vec3 RayColor(Ray ray, IHittable world)
         {
-            var directionUnit = ray.Direction.Unit;
+            var record = world.Hit(ray, 0, double.PositiveInfinity);
+            if (record != null)
+            {
+                return 0.5 * (record.Normal + new Vec3(1, 1, 1));
+            }
 
+            var directionUnit = ray.Direction.Unit;
             var t = 0.5 * (directionUnit.Y + 1.0);
             return (1.0 - t) * new Vec3(1.0, 1.0, 1.0) + t * new Vec3(0.5, 0.7, 1.0);
         }
