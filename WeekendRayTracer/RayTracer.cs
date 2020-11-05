@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using WeekendRayTracer.Extensions;
 using WeekendRayTracer.Models;
 
 namespace WeekendRayTracer
@@ -8,6 +9,7 @@ namespace WeekendRayTracer
     public class RayTracer
     {
         private List<string> lines;
+        readonly Random rand = new Random();
 
         public void Run()
         {
@@ -15,21 +17,14 @@ namespace WeekendRayTracer
             var aspectRatio = 16.0 / 9.0;
             var imageWidth = 400;
             var imageHeight = (int)(imageWidth / aspectRatio);
+            int samplesPerPixel = 100;
 
             // World
             HittableList world = new HittableList();
             world.Add(new Sphere(new Vec3(0, 0, -1), 0.5));
             world.Add(new Sphere(new Vec3(0, -100.5, -1), 100));
 
-            // Camera
-            var viewportHeight = 2.0;
-            var viewportWidth = aspectRatio * viewportHeight;
-            var focalLength = 1.0;
-
-            var origin = new Vec3(0, 0, 0);
-            var horizontal = new Vec3(viewportWidth, 0, 0);
-            var vertical = new Vec3(0, viewportHeight, 0);
-            var lowerLeftCorner = origin - horizontal / 2 - vertical / 2 - new Vec3(0, 0, focalLength);
+            Camera cam = new Camera();
 
             Log("Creating image...");
 
@@ -41,16 +36,21 @@ namespace WeekendRayTracer
             for (int j = imageHeight - 1; j > 0; --j)
             {
                 Console.Write("\rScanlines remaining: {0}    ", j);
-
                 for (int i = 0; i < imageWidth; ++i)
                 {
-                    var u = (double)i / (imageWidth - 1);
-                    var v = (double)j / (imageHeight - 1);
-                    var ray = new Ray(origin, lowerLeftCorner + u * horizontal + v * vertical - origin);
-                    var color = RayColor(ray, world);
-                    WriteColor(color);
+                    var pixelColor = new Vec3(0, 0, 0);
+                    for (int s = 0; s < samplesPerPixel; ++s)
+                    {
+                        var u = (i + rand.NextDouble()) / (imageWidth - 1);
+                        var v = (j + rand.NextDouble()) / (imageHeight - 1);
+                        var ray = cam.GetRay(u, v);
+                        pixelColor += RayColor(ray, world);
+                    }
+
+                    WriteColor(pixelColor, samplesPerPixel);
                 }
             }
+            Console.Write("\rScanlines remaining: {0}    ", 0);
             Console.Write("\n\n");
 
             PrintFile();
@@ -75,9 +75,18 @@ namespace WeekendRayTracer
             Console.WriteLine(text);
         }
 
-        private void WriteColor(Vec3 color)
+        private void WriteColor(Vec3 pixelColor, int samplesPerPixel)
         {
-            lines.Add($"{(int)(255.999 * color.X)} {(int)(255.999 * color.Y)} {(int)(255.999 * color.Z)}\n");
+            var r = pixelColor.X;
+            var g = pixelColor.Y;
+            var b = pixelColor.Z;
+
+            var scale = 1.0 / samplesPerPixel;
+            r *= scale;
+            g *= scale;
+            b *= scale;
+
+            lines.Add($"{(int)(256 * Math.Clamp(r, 0.0, 0.999))} {(int)(256 * Math.Clamp(g, 0.0, 0.999))} {(int)(256 * Math.Clamp(b, 0.0, 0.999))}\n");
         }
 
         private void PrintFile()

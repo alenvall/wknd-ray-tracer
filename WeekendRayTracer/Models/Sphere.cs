@@ -45,8 +45,10 @@ namespace WeekendRayTracer.Models
                 }
             }
 
-            var record = new HitRecord();
-            record.T = root;
+            var record = new HitRecord
+            {
+                T = root
+            };
             record.P = ray.At(record.T);
             var outwardNormal = (record.P - Center) / Radius;
             record.SetFaceNormal(ray, outwardNormal);

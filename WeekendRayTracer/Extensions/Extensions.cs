@@ -9,5 +9,9 @@ namespace WeekendRayTracer.Extensions
             return (degrees * Math.PI) / 180;
         }
 
+        public static double NextDouble(this Random random, double min, double max)
+        {
+            return min + (max - min) * random.NextDouble();
+        }
     }
 }
