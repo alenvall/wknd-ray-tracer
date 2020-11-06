@@ -24,13 +24,14 @@ namespace WeekendRayTracer
             HittableList world = new HittableList();
 
             var materialGround = new Lambertian(new Vec3(0.8, 0.8, 0.0));
-            var materialCenter = new Lambertian(new Vec3(0.7, 0.3, 0.3));
-            var materialLeft = new Metal(new Vec3(0.8, 0.8, 0.8), 0.3);
-            var materialRight = new Metal(new Vec3(0.8, 0.6, 0.2), 1.0);
+            var materialCenter = new Lambertian(new Vec3(0.1, 0.2, 0.5));
+            var materialLeft = new Dielectric(1.5);
+            var materialRight = new Metal(new Vec3(0.8, 0.6, 0.2), 0.0);
 
             world.Add(new Sphere(new Vec3(0.0, -100.5, -1.0), 100.0, materialGround));
             world.Add(new Sphere(new Vec3(0.0, 0.0, -1.0), 0.5, materialCenter));
             world.Add(new Sphere(new Vec3(-1.0, 0.0, -1.0), 0.5, materialLeft));
+            world.Add(new Sphere(new Vec3(-1.0, 0.0, -1.0), -0.4, materialLeft));
             world.Add(new Sphere(new Vec3(1.0, 0.0, -1.0), 0.5, materialRight));
 
             Camera cam = new Camera();

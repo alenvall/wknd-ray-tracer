@@ -62,6 +62,15 @@ namespace WeekendRayTracer.Models
         {
             return this - 2 * Dot(n) * n;
         }
+        
+        public Vec3 Refract(Vec3 n, double etaIOverEtaT)
+        {
+            var cosTheta = Math.Min((-this).Dot(n), 1.0);
+            var rOutPerpendicular = etaIOverEtaT * (this + cosTheta * n);
+            var rOutParallel = -Math.Sqrt(Math.Abs(1.0 - rOutPerpendicular.LengthSquared())) * n;
+
+            return rOutPerpendicular + rOutParallel;
+        }
 
         public bool NearZero()
         {
