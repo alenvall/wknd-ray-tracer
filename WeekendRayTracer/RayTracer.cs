@@ -22,8 +22,16 @@ namespace WeekendRayTracer
 
             // World
             HittableList world = new HittableList();
-            world.Add(new Sphere(new Vec3(0, 0, -1), 0.5));
-            world.Add(new Sphere(new Vec3(0, -100.5, -1), 100));
+
+            var materialGround = new Lambertian(new Vec3(0.8, 0.8, 0.0));
+            var materialCenter = new Lambertian(new Vec3(0.7, 0.3, 0.3));
+            var materialLeft = new Metal(new Vec3(0.8, 0.8, 0.8), 0.3);
+            var materialRight = new Metal(new Vec3(0.8, 0.6, 0.2), 1.0);
+
+            world.Add(new Sphere(new Vec3(0.0, -100.5, -1.0), 100.0, materialGround));
+            world.Add(new Sphere(new Vec3(0.0, 0.0, -1.0), 0.5, materialCenter));
+            world.Add(new Sphere(new Vec3(-1.0, 0.0, -1.0), 0.5, materialLeft));
+            world.Add(new Sphere(new Vec3(1.0, 0.0, -1.0), 0.5, materialRight));
 
             Camera cam = new Camera();
 
@@ -70,11 +78,16 @@ namespace WeekendRayTracer
             var record = world.Hit(ray, 0.001, double.PositiveInfinity);
             if (record != null)
             {
-                var target = record.P + record.Normal + Vec3.RandomUnitVector();
-                return 0.5 * RayColor(new Ray(record.P, target - record.P), world, depth - 1);
+                var scatterResult = record.Materal.Scatter(ray, record);
+                if (scatterResult != null)
+                {
+                    return scatterResult.Attenuation * RayColor(scatterResult.ScatteredRay, world, depth - 1);
+                }
+
+                return new Vec3(0, 0, 0);
             }
 
-            var directionUnit = ray.Direction.Unit;
+            var directionUnit = ray.Direction.Unit();
             var t = 0.5 * (directionUnit.Y + 1.0);
             return (1.0 - t) * new Vec3(1.0, 1.0, 1.0) + t * new Vec3(0.5, 0.7, 1.0);
         }

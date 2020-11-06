@@ -9,7 +9,7 @@ namespace WeekendRayTracer.Models
         public double Y { get; set; }
         public double Z { get; set; }
 
-        private static Random rand = new Random();
+        private static readonly Random rand = new Random();
 
         public static Vec3 operator -(Vec3 u) => new Vec3(-u.X, -u.Y, -u.Z);
         public static Vec3 operator +(Vec3 u, Vec3 v) => new Vec3(u.X + v.X, u.Y + v.Y, u.Z + v.Z);
@@ -18,15 +18,6 @@ namespace WeekendRayTracer.Models
         public static Vec3 operator *(Vec3 u, double t) => new Vec3(u.X * t, u.Y * t, u.Z * t);
         public static Vec3 operator *(double t, Vec3 u) => u * t;
         public static Vec3 operator /(Vec3 u, double t) => u * (1 / t);
-
-        public double LengthSquared => X * X + Y * Y + Z * Z;
-        public double Length => Math.Sqrt(LengthSquared);
-        public Vec3 Unit => new Vec3(X, Y, Z) / Length;
-
-        public double Dot(Vec3 v) => X * v.X + Y * v.Y + Z * v.Z;
-        public Vec3 Cross(Vec3 v) => new Vec3(Y * v.Z - Z * v.Y, Z * v.X - X * v.Z, X * v.Y - Y * v.X);
-        public override string ToString() => $"{X}, {Y}, {Z}";
-
 
         public Vec3()
         {
@@ -40,6 +31,47 @@ namespace WeekendRayTracer.Models
             X = x;
             Y = y;
             Z = z;
+        }
+
+        public double LengthSquared()
+        {
+            return X * X + Y * Y + Z * Z;
+        }
+
+        public double Length()
+        {
+            return Math.Sqrt(LengthSquared());
+        }
+
+        public Vec3 Unit()
+        {
+            return new Vec3(X, Y, Z) / Length();
+        }
+
+        public double Dot(Vec3 v)
+        {
+            return X * v.X + Y * v.Y + Z * v.Z;
+        }
+
+        public Vec3 Cross(Vec3 v)
+        {
+            return new Vec3(Y * v.Z - Z * v.Y, Z * v.X - X * v.Z, X * v.Y - Y * v.X);
+        }
+
+        public Vec3 Reflect(Vec3 n)
+        {
+            return this - 2 * Dot(n) * n;
+        }
+
+        public bool NearZero()
+        {
+            var s = 1e-8;
+            return (Math.Abs(X) < s) && (Math.Abs(Y) < s) && (Math.Abs(Z) < s);
+        }
+
+        public override string ToString()
+        {
+            return $"{X}, {Y}, {Z}";
         }
 
         public static Vec3 Random()
@@ -57,7 +89,7 @@ namespace WeekendRayTracer.Models
             while (true)
             {
                 var p = Vec3.Random();
-                if (p.LengthSquared < 1)
+                if (p.LengthSquared() < 1)
                 {
                     return p;
                 }
@@ -66,7 +98,7 @@ namespace WeekendRayTracer.Models
 
         public static Vec3 RandomUnitVector()
         {
-            return RandomInUnitSphere().Unit;
+            return RandomInUnitSphere().Unit();
         }
     }
 }
