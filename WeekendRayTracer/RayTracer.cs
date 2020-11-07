@@ -21,7 +21,6 @@ namespace WeekendRayTracer
             int maxDepth = 50;
 
             // World
-            var R = Math.Cos(Math.PI / 4);
             HittableList world = new HittableList();
 
             var materialGround = new Lambertian(new Vec3(0.8, 0.8, 0.0));
@@ -35,7 +34,13 @@ namespace WeekendRayTracer
             world.Add(new Sphere(new Vec3(-1.0, 0.0, -1.0), -0.4, materialLeft));
             world.Add(new Sphere(new Vec3(1.0, 0.0, -1.0), 0.5, materialRight));
 
-            Camera cam = new Camera(new Vec3(-2, 2, 1), new Vec3(0, 0, -1), new Vec3(0, 1, 0), 20.0, aspectRatio);
+            var lookFrom = new Vec3(3, 3, 2);
+            var lookAt = new Vec3(0, 0, -1);
+            var vUp = new Vec3(0, 1, 0);
+            var focusDistance = (lookFrom - lookAt).Length();
+            var aperture = 2.0;
+
+            Camera cam = new Camera(lookFrom, lookAt, vUp, 20, aspectRatio, aperture, focusDistance);
 
             Log("Creating image...");
 

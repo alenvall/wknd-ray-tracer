@@ -8,8 +8,6 @@ namespace WeekendRayTracer.Models
         public double Radius { get; set; }
         public IMaterial Material { get; set; }
 
-        public Sphere() { }
-
         public Sphere(Vec3 center, double radius, IMaterial material)
         {
             Center = center;

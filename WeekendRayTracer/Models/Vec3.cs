@@ -62,7 +62,7 @@ namespace WeekendRayTracer.Models
         {
             return this - 2 * Dot(n) * n;
         }
-        
+
         public Vec3 Refract(Vec3 n, double etaIOverEtaT)
         {
             var cosTheta = Math.Min((-this).Dot(n), 1.0);
@@ -108,6 +108,19 @@ namespace WeekendRayTracer.Models
         public static Vec3 RandomUnitVector()
         {
             return RandomInUnitSphere().Unit();
+        }
+
+        public static Vec3 RandomInUnitDisk()
+        {
+            while (true)
+            {
+                var p = new Vec3(rand.NextDouble(-1, 1), rand.NextDouble(-1, 1), 0);
+
+                if (p.LengthSquared() < 1)
+                {
+                    return p;
+                }
+            }
         }
     }
 }
