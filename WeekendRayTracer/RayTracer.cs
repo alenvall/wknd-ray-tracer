@@ -21,6 +21,7 @@ namespace WeekendRayTracer
             int maxDepth = 50;
 
             // World
+            var R = Math.Cos(Math.PI / 4);
             HittableList world = new HittableList();
 
             var materialGround = new Lambertian(new Vec3(0.8, 0.8, 0.0));
@@ -34,7 +35,7 @@ namespace WeekendRayTracer
             world.Add(new Sphere(new Vec3(-1.0, 0.0, -1.0), -0.4, materialLeft));
             world.Add(new Sphere(new Vec3(1.0, 0.0, -1.0), 0.5, materialRight));
 
-            Camera cam = new Camera();
+            Camera cam = new Camera(new Vec3(-2, 2, 1), new Vec3(0, 0, -1), new Vec3(0, 1, 0), 20.0, aspectRatio);
 
             Log("Creating image...");
 

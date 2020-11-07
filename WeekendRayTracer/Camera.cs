@@ -1,4 +1,6 @@
-﻿using WeekendRayTracer.Models;
+﻿using System;
+using WeekendRayTracer.Extensions;
+using WeekendRayTracer.Models;
 
 namespace WeekendRayTracer
 {
@@ -9,22 +11,26 @@ namespace WeekendRayTracer
         private readonly Vec3 horizontal;
         private readonly Vec3 vertical;
 
-        public Camera()
+        public Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vUp, double verticalFovDeg, double aspectRatio)
         {
-            var aspectRatio = 16.0 / 9.0;
-            var viewportHeight = 2.0;
+            var theta = verticalFovDeg.ToRadians();
+            var h = Math.Tan(theta / 2);
+            var viewportHeight = 2.0 * h;
             var viewportWidth = aspectRatio * viewportHeight;
-            var focalLength = 1.0;
 
-            origin = new Vec3(0, 0, 0);
-            horizontal = new Vec3(viewportWidth, 0, 0);
-            vertical = new Vec3(0, viewportHeight, 0);
-            lowerLeftCorner = origin - horizontal / 2 - vertical / 2 - new Vec3(0, 0, focalLength);
+            var w = (lookFrom - lookAt).Unit();
+            var u = (vUp.Cross(w)).Unit();
+            var v = w.Cross(u);
+
+            origin = lookFrom;
+            horizontal = viewportWidth * u;
+            vertical = viewportHeight * v;
+            lowerLeftCorner = origin - horizontal / 2 - vertical / 2 - w;
         }
 
-        public Ray GetRay(double u, double v)
+        public Ray GetRay(double s, double t)
         {
-            return new Ray(origin, lowerLeftCorner + u * horizontal + v * vertical - origin);
+            return new Ray(origin, lowerLeftCorner + s * horizontal + t * vertical - origin);
         }
     }
 }
