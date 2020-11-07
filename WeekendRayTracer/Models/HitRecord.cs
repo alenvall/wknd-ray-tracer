@@ -7,6 +7,7 @@ namespace WeekendRayTracer.Models
         public Vec3 Normal { get; set; }
         public double T { get; set; }
         public bool FrontFace { get; set; }
+        public IMaterial Materal;
 
         public HitRecord() { }
 
