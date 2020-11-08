@@ -1,5 +1,5 @@
 ﻿
-namespace WeekendRayTracer.Models
+namespace WeekendRayTracer.Models.Tracing
 {
     public class ScatterResult
     {
