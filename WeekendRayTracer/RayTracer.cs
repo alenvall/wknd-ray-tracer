@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using WeekendRayTracer.Extensions;
 using WeekendRayTracer.Models;
 using WeekendRayTracer.Models.Materials;
@@ -11,44 +15,97 @@ namespace WeekendRayTracer
 {
     public class RayTracer
     {
-        private HittableList _scene;
+        private Scene _scene;
         private Camera _camera;
-
-        private static readonly Random _rand = new Random();
+        private readonly Random _rand = new Random();
 
         public void Run()
         {
-            // Image
             var aspectRatio = 16.0 / 9.0;
-            var imageWidth = 200;
+            var imageWidth = 600;
             var imageHeight = (int)(imageWidth / aspectRatio);
-            var samplesPerPixel = 50;
+            var samplesPerPixel = 200;
             var maxDepth = 50;
-            var complexity = 3;
+            var complexity = 4;
             var renderName = $"{imageWidth}x{imageHeight}_{complexity}_{samplesPerPixel}_{maxDepth}";
 
             Console.WriteLine("Setting up scene and camera...");
             _camera = SetupCamera(aspectRatio);
             _scene = GenerateRandomScene(complexity);
 
-            Log("Rendering scene...");
-            var pixels = RenderPixels(imageWidth, imageHeight, samplesPerPixel, maxDepth);
+            var stopwatch = new Stopwatch();
 
-            Log("\n\n");
+            stopwatch.Start();
+            var parallel = RenderPixelsParallel(imageWidth, imageHeight, samplesPerPixel, maxDepth);
+            stopwatch.Stop();
 
-            PrintFile(imageWidth, imageHeight, pixels, renderName);
-            Log("Done! Press any key to exit...");
+            Console.WriteLine($"\nParallel finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
+            PrintFile(imageWidth, imageHeight, parallel, renderName + $"_para ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
 
-            Console.ReadLine();
+            //stopwatch.Restart();
+            //var sequential = RenderPixelsSequential(imageWidth, imageHeight, samplesPerPixel, maxDepth);
+            //stopwatch.Stop();
+
+            //Console.WriteLine($"\nSequential finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
+            //PrintFile(imageWidth, imageHeight, sequential, renderName + $"_seq ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
+
+            Console.WriteLine("\nDone! Press any key to exit...");
+            Console.ReadKey();
         }
 
-        private List<Vec3> RenderPixels(int imageWidth, int imageHeight, int samples, int maxDepth)
+        private List<Vec3> RenderPixelsParallel(int imageWidth, int imageHeight, int samples, int maxDepth)
+        {
+            var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
+            var totalPixels = imageHeight * imageWidth;
+            int seed = Environment.TickCount;
+
+            Console.Write("Rendering scene... 0%");
+            Parallel.For(1, imageHeight + 1, row =>
+            {
+                var random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
+
+                for (int column = 1; column < imageWidth + 1; column++)
+                {
+                    var color = new Vec3(0, 0, 0);
+                    for (int s = 0; s < samples; ++s)
+                    {
+                        var j = imageHeight - row;
+                        var i = column - 1;
+                        var u = (i + random.Value.NextDouble()) / (imageWidth - 1);
+                        var v = (j + random.Value.NextDouble()) / (imageHeight - 1);
+                        var ray = _camera.GetRay(u, v);
+                        color += RayColor(ray, maxDepth);
+                    }
+
+                    var scale = 1.0 / samples;
+                    var red = Math.Sqrt(scale * color.X);
+                    var green = Math.Sqrt(scale * color.Y);
+                    var blue = Math.Sqrt(scale * color.Z);
+
+                    int clampedRed = (int)(256 * Math.Clamp(red, 0.0, 0.999));
+                    int clampedGreen = (int)(256 * Math.Clamp(green, 0.0, 0.999));
+                    int clampedBlue = (int)(256 * Math.Clamp(blue, 0.0, 0.999));
+
+                    var pixel = new Vec3(clampedRed, clampedGreen, clampedBlue);
+
+                    var index = (row - 1) * imageWidth + column;
+                    queue.Enqueue(new KeyValuePair<int, Vec3>(index, pixel));
+                }
+
+                Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * queue.Count / totalPixels));
+            });
+
+            return queue.ToArray().OrderBy(pair => pair.Key).Select(pair => pair.Value).ToList();
+        }
+
+        private List<Vec3> RenderPixelsSequential(int imageWidth, int imageHeight, int samples, int maxDepth)
         {
             var pixels = new List<Vec3>();
+            var totalPixels = imageHeight * imageWidth;
 
-            for (int j = imageHeight - 1; j > 0; --j)
+            Console.Write("Rendering scene... 0%");
+            for (int j = imageHeight - 1; j >= 0; --j)
             {
-                Console.Write("\rScanlines remaining: {0}    ", j);
                 for (int i = 0; i < imageWidth; ++i)
                 {
                     var color = new Vec3(0, 0, 0);
@@ -71,8 +128,9 @@ namespace WeekendRayTracer
 
                     pixels.Add(new Vec3(clampedRed, clampedGreen, clampedBlue));
                 }
+
+                Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * pixels.Count / totalPixels));
             }
-            Console.Write("\rScanlines remaining: {0}    ", 0);
 
             return pixels;
         }
@@ -101,9 +159,9 @@ namespace WeekendRayTracer
             return (1.0 - t) * new Vec3(1.0, 1.0, 1.0) + t * new Vec3(0.5, 0.7, 1.0);
         }
 
-        private HittableList GenerateRandomScene(int complexity)
+        private Scene GenerateRandomScene(int complexity)
         {
-            var scene = new HittableList();
+            var scene = new Scene();
 
             var groundMaterial = new Lambertian(new Vec3(0.5, 0.5, 0.5));
             scene.Add(new Sphere(new Vec3(0, -1000, 0), 1000, groundMaterial));

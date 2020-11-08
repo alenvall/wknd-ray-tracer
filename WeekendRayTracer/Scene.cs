@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
+using WeekendRayTracer.Models.Tracing;
 
-namespace WeekendRayTracer.Models.Tracing
+namespace WeekendRayTracer
 {
-    public class HittableList : IHittable
+    public class Scene : IHittable
     {
         private readonly IList<IHittable> _objects;
 
-        public HittableList()
+        public Scene()
         {
             _objects = new List<IHittable>();
         }

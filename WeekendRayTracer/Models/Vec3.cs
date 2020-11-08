@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using WeekendRayTracer.Extensions;
 
 namespace WeekendRayTracer.Models
@@ -9,7 +10,9 @@ namespace WeekendRayTracer.Models
         public double Y { get; set; }
         public double Z { get; set; }
 
-        private static readonly Random rand = new Random();
+        private static int _seed = Environment.TickCount;
+        private static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref _seed)));
+        private static Random Rand => random.Value;
 
         public static Vec3 operator -(Vec3 u) => new Vec3(-u.X, -u.Y, -u.Z);
         public static Vec3 operator +(Vec3 u, Vec3 v) => new Vec3(u.X + v.X, u.Y + v.Y, u.Z + v.Z);
@@ -85,19 +88,19 @@ namespace WeekendRayTracer.Models
 
         public static Vec3 Random()
         {
-            return new Vec3(rand.NextDouble(), rand.NextDouble(), rand.NextDouble());
+            return new Vec3(Rand.NextDouble(), Rand.NextDouble(), Rand.NextDouble());
         }
 
         public static Vec3 Random(double min, double max)
         {
-            return new Vec3(rand.NextDouble(min, max), rand.NextDouble(min, max), rand.NextDouble(min, max));
+            return new Vec3(Rand.NextDouble(min, max), Rand.NextDouble(min, max), Rand.NextDouble(min, max));
         }
 
         public static Vec3 RandomInUnitSphere()
         {
             while (true)
             {
-                var p = Vec3.Random();
+                var p = Vec3.Random(-1, 1);
                 if (p.LengthSquared() < 1)
                 {
                     return p;
@@ -114,7 +117,7 @@ namespace WeekendRayTracer.Models
         {
             while (true)
             {
-                var p = new Vec3(rand.NextDouble(-1, 1), rand.NextDouble(-1, 1), 0);
+                var p = new Vec3(Rand.NextDouble(-1, 1), Rand.NextDouble(-1, 1), 0);
 
                 if (p.LengthSquared() < 1)
                 {
