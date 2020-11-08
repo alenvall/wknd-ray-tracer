@@ -27,7 +27,8 @@ namespace WeekendRayTracer
             var complexity = 3;
             var renderName = $"{imageWidth}x{imageHeight}_{complexity}_{samplesPerPixel}_{maxDepth}";
 
-            _camera = SetupStandardCamera(aspectRatio);
+            Console.WriteLine("Setting up scene and camera...");
+            _camera = SetupCamera(aspectRatio);
             _scene = GenerateRandomScene(complexity);
 
             Log("Rendering scene...");
@@ -155,7 +156,7 @@ namespace WeekendRayTracer
             return scene;
         }
 
-        private Camera SetupStandardCamera(double aspectRatio)
+        private Camera SetupCamera(double aspectRatio)
         {
             var lookFrom = new Vec3(13, 2, 3);
             var lookAt = new Vec3(0, 0, 0);
@@ -166,43 +167,8 @@ namespace WeekendRayTracer
             return new Camera(lookFrom, lookAt, vUp, 20, aspectRatio, aperture, focusDistance);
         }
 
-        private HittableList GenerateSimpleScene()
-        {
-            HittableList scene = new HittableList();
-
-            var materialGround = new Lambertian(new Vec3(0.8, 0.8, 0.0));
-            var materialCenter = new Lambertian(new Vec3(0.1, 0.2, 0.5));
-            var materialLeft = new Dielectric(1.5);
-            var materialRight = new Metal(new Vec3(0.8, 0.6, 0.2), 0.0);
-
-            scene.Add(new Sphere(new Vec3(0.0, -100.5, -1.0), 100.0, materialGround));
-            scene.Add(new Sphere(new Vec3(0.0, 0.0, -1.0), 0.5, materialCenter));
-            scene.Add(new Sphere(new Vec3(-1.0, 0.0, -1.0), 0.5, materialLeft));
-            scene.Add(new Sphere(new Vec3(-1.0, 0.0, -1.0), -0.4, materialLeft));
-            scene.Add(new Sphere(new Vec3(1.0, 0.0, -1.0), 0.5, materialRight));
-
-            return scene;
-        }
-
-        private Camera SetupSimpleCamera(double aspectRatio)
-        {
-            var lookFrom = new Vec3(3, 3, 2);
-            var lookAt = new Vec3(0, 0, -1);
-            var vUp = new Vec3(0, 1, 0);
-            var focusDistance = (lookFrom - lookAt).Length();
-            var aperture = 0.1;
-
-            return new Camera(lookFrom, lookAt, vUp, 20, aspectRatio, aperture, focusDistance);
-        }
-
-        private void Log(object text)
-        {
-            Console.WriteLine(text);
-        }
-
         private void PrintFile(int imageWidth, int imageHeight, List<Vec3> pixels, string renderName)
         {
-
             using StreamWriter outputFile = new StreamWriter(Path.Combine(Directory.GetCurrentDirectory(), renderName + ".ppm"));
             outputFile.Write($"P3\n{imageWidth} {imageHeight} \n255\n");
 
