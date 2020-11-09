@@ -22,11 +22,11 @@ namespace WeekendRayTracer
         public void Run()
         {
             var aspectRatio = 16.0 / 9.0;
-            var imageWidth = 600;
+            var imageWidth = 200;
             var imageHeight = (int)(imageWidth / aspectRatio);
-            var samplesPerPixel = 200;
+            var samplesPerPixel = 50;
             var maxDepth = 50;
-            var complexity = 4;
+            var complexity = 3;
             var renderName = $"{imageWidth}x{imageHeight}_{complexity}_{samplesPerPixel}_{maxDepth}";
 
             Console.WriteLine("Setting up scene and camera...");
@@ -36,13 +36,26 @@ namespace WeekendRayTracer
             var stopwatch = new Stopwatch();
 
             stopwatch.Start();
-            var parallel = RenderPixelsParallel(imageWidth, imageHeight, samplesPerPixel, maxDepth);
+            var parallel1_2 = RenderPixelsParallelFirstAndSecond(imageWidth, imageHeight, samplesPerPixel, maxDepth);
             stopwatch.Stop();
 
-            Console.WriteLine($"\nParallel finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
-            PrintFile(imageWidth, imageHeight, parallel, renderName + $"_para ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
+            Console.WriteLine($"\nParallel 1 & 2 finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
+            PrintFile(imageWidth, imageHeight, parallel1_2, renderName + $"_para1_2 ({Math.Round(stopwatch.Elapsed.TotalSeconds)})");
 
-            //stopwatch.Restart();
+            stopwatch.Restart();
+            var parallel2 = RenderPixelsParallelSecond(imageWidth, imageHeight, samplesPerPixel, maxDepth);
+            stopwatch.Stop();
+
+            Console.WriteLine($"\nParallel 2 finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
+            PrintFile(imageWidth, imageHeight, parallel2, renderName + $"_para2 ({Math.Round(stopwatch.Elapsed.TotalSeconds)})");
+
+            stopwatch.Restart();
+            var parallel1 = RenderPixelsParallelFirst(imageWidth, imageHeight, samplesPerPixel, maxDepth);
+            stopwatch.Stop();
+
+            Console.WriteLine($"\nParallel 1 finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
+            PrintFile(imageWidth, imageHeight, parallel1, renderName + $"_para1 ({Math.Round(stopwatch.Elapsed.TotalSeconds)})");
+
             //var sequential = RenderPixelsSequential(imageWidth, imageHeight, samplesPerPixel, maxDepth);
             //stopwatch.Stop();
 
@@ -53,21 +66,109 @@ namespace WeekendRayTracer
             Console.ReadKey();
         }
 
-        private List<Vec3> RenderPixelsParallel(int imageWidth, int imageHeight, int samples, int maxDepth)
+        private List<Vec3> RenderPixelsParallelFirstAndSecond(int imageWidth, int imageHeight, int samples, int maxDepth)
         {
             var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
             var totalPixels = imageHeight * imageWidth;
             int seed = Environment.TickCount;
+            var random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
 
             Console.Write("Rendering scene... 0%");
             Parallel.For(1, imageHeight + 1, row =>
             {
-                var random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
+                Parallel.For(1, imageWidth + 1, column =>
+                {
+                    var color = new Vec3(0, 0, 0);
+                    for (int s = 1; s <= samples; s++)
+                    {
+                        var j = imageHeight - row;
+                        var i = column - 1;
+                        var u = (i + random.Value.NextDouble()) / (imageWidth - 1);
+                        var v = (j + random.Value.NextDouble()) / (imageHeight - 1);
+                        var ray = _camera.GetRay(u, v);
+                        color += RayColor(ray, maxDepth);
+                    }
+
+                    var scale = 1.0 / samples;
+                    var red = Math.Sqrt(scale * color.X);
+                    var green = Math.Sqrt(scale * color.Y);
+                    var blue = Math.Sqrt(scale * color.Z);
+
+                    int clampedRed = (int)(256 * Math.Clamp(red, 0.0, 0.999));
+                    int clampedGreen = (int)(256 * Math.Clamp(green, 0.0, 0.999));
+                    int clampedBlue = (int)(256 * Math.Clamp(blue, 0.0, 0.999));
+
+                    var pixel = new Vec3(clampedRed, clampedGreen, clampedBlue);
+
+                    var index = (row - 1) * imageWidth + column;
+                    queue.Enqueue(new KeyValuePair<int, Vec3>(index, pixel));
+                });
+
+                Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * queue.Count / totalPixels));
+            });
+
+            return queue.ToArray().OrderBy(pair => pair.Key).Select(pair => pair.Value).ToList();
+        }
+
+        private List<Vec3> RenderPixelsParallelSecond(int imageWidth, int imageHeight, int samples, int maxDepth)
+        {
+            var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
+            var totalPixels = imageHeight * imageWidth;
+            int seed = Environment.TickCount;
+            var random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
+
+            Console.Write("Rendering scene... 0%");
+            for (int row = 1; row < imageHeight + 1; row++)
+            {
+                Parallel.For(1, imageWidth + 1, column =>
+                {
+                    var color = new Vec3(0, 0, 0);
+                    for (int s = 1; s <= samples; s++)
+                    {
+                        var j = imageHeight - row;
+                        var i = column - 1;
+                        var u = (i + random.Value.NextDouble()) / (imageWidth - 1);
+                        var v = (j + random.Value.NextDouble()) / (imageHeight - 1);
+                        var ray = _camera.GetRay(u, v);
+                        color += RayColor(ray, maxDepth);
+                    }
+
+                    var scale = 1.0 / samples;
+                    var red = Math.Sqrt(scale * color.X);
+                    var green = Math.Sqrt(scale * color.Y);
+                    var blue = Math.Sqrt(scale * color.Z);
+
+                    int clampedRed = (int)(256 * Math.Clamp(red, 0.0, 0.999));
+                    int clampedGreen = (int)(256 * Math.Clamp(green, 0.0, 0.999));
+                    int clampedBlue = (int)(256 * Math.Clamp(blue, 0.0, 0.999));
+
+                    var pixel = new Vec3(clampedRed, clampedGreen, clampedBlue);
+
+                    var index = (row - 1) * imageWidth + column;
+                    queue.Enqueue(new KeyValuePair<int, Vec3>(index, pixel));
+                });
+
+                Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * queue.Count / totalPixels));
+            }
+
+            return queue.ToArray().OrderBy(pair => pair.Key).Select(pair => pair.Value).ToList();
+        }
+
+        private List<Vec3> RenderPixelsParallelFirst(int imageWidth, int imageHeight, int samples, int maxDepth)
+        {
+            var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
+            var totalPixels = imageHeight * imageWidth;
+            int seed = Environment.TickCount;
+            var random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
+
+            Console.Write("Rendering scene... 0%");
+            Parallel.For(1, imageHeight + 1, row =>
+            {
 
                 for (int column = 1; column < imageWidth + 1; column++)
                 {
                     var color = new Vec3(0, 0, 0);
-                    for (int s = 0; s < samples; ++s)
+                    for (int s = 1; s <= samples; s++)
                     {
                         var j = imageHeight - row;
                         var i = column - 1;
@@ -219,8 +320,8 @@ namespace WeekendRayTracer
             var lookFrom = new Vec3(13, 2, 3);
             var lookAt = new Vec3(0, 0, 0);
             var vUp = new Vec3(0, 1, 0);
-            var focusDistance = 10.0;
-            var aperture = 0.1;
+            var focusDistance = 10;
+            var aperture = 0.15;
 
             return new Camera(lookFrom, lookAt, vUp, 20, aspectRatio, aperture, focusDistance);
         }
