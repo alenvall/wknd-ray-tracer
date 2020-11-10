@@ -4,6 +4,6 @@ namespace WeekendRayTracer.Models.Materials
 {
     public interface IMaterial
     {
-        public ScatterResult Scatter(Ray ray, HitResult record);
+        public bool Scatter(ref ScatterResult scatterResult, in Ray ray, in HitResult hitResult);
     }
 }

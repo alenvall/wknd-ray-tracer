@@ -1,7 +1,7 @@
 ﻿
 namespace WeekendRayTracer.Models.Tracing
 {
-    public class Ray
+    public readonly struct Ray
     {
         public Vec3 Origin { get; }
         public Vec3 Direction { get; }

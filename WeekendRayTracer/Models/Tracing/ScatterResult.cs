@@ -1,10 +1,10 @@
 ﻿
 namespace WeekendRayTracer.Models.Tracing
 {
-    public class ScatterResult
+    public readonly struct ScatterResult
     {
-        public Ray ScatteredRay { get; set; }
-        public Vec3 Attenuation { get; set; }
+        public Ray ScatteredRay { get; }
+        public Vec3 Attenuation { get; }
 
         public ScatterResult(Ray scatteredRay, Vec3 attenuation)
         {

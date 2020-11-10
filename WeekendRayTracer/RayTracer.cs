@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WeekendRayTracer.Extensions;
@@ -164,7 +165,6 @@ namespace WeekendRayTracer
             Console.Write("Rendering scene... 0%");
             Parallel.For(1, imageHeight + 1, row =>
             {
-
                 for (int column = 1; column < imageWidth + 1; column++)
                 {
                     var color = new Vec3(0, 0, 0);
@@ -236,18 +236,18 @@ namespace WeekendRayTracer
             return pixels;
         }
 
-        private Vec3 RayColor(Ray ray, int depth)
+        private Vec3 RayColor(in Ray ray, int depth)
         {
             if (depth <= 0)
             {
                 return new Vec3(0, 0, 0);
             }
 
-            var hitResult = _scene.Hit(ray, 0.001, double.PositiveInfinity);
-            if (hitResult != null)
+            var hitResult = new HitResult();
+            if (_scene.Hit(ref hitResult, ray, 0.001, double.PositiveInfinity))
             {
-                var scatterResult = hitResult.Material.Scatter(ray, hitResult);
-                if (scatterResult != null)
+                var scatterResult = new ScatterResult();
+                if (hitResult.Material.Scatter(ref scatterResult, ray, hitResult))
                 {
                     return scatterResult.Attenuation * RayColor(scatterResult.ScatteredRay, depth - 1);
                 }
@@ -328,13 +328,15 @@ namespace WeekendRayTracer
 
         private void PrintFile(int imageWidth, int imageHeight, List<Vec3> pixels, string renderName)
         {
-            using StreamWriter outputFile = new StreamWriter(Path.Combine(Directory.GetCurrentDirectory(), renderName + ".ppm"));
-            outputFile.Write($"P3\n{imageWidth} {imageHeight} \n255\n");
+            var sb = new StringBuilder($"P3\n{imageWidth} {imageHeight} \n255\n");
 
-            foreach (string line in pixels.Select(p => $"{p.X} {p.Y} {p.Z}\n"))
+            foreach (var p in pixels)
             {
-                outputFile.Write(line);
+                sb.Append($"{p.X} {p.Y} {p.Z}\n");
             }
+
+            using StreamWriter outputFile = new StreamWriter(Path.Combine(Directory.GetCurrentDirectory(), renderName + ".ppm"));
+            outputFile.Write(sb);
         }
 
     }

@@ -4,30 +4,30 @@ using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer.Models
 {
-    public class Sphere : IHittable
+    public readonly struct Sphere : IHittable
     {
-        private readonly Vec3 _center;
-        private readonly double _radius;
-        private readonly IMaterial _material;
+        private Vec3 Center { get; }
+        private double Radius { get; }
+        private IMaterial Material { get; }
 
         public Sphere(Vec3 center, double radius, IMaterial material)
         {
-            _center = center;
-            _radius = radius;
-            _material = material;
+            Center = center;
+            Radius = radius;
+            Material = material;
         }
 
-        public HitResult Hit(Ray ray, double tMin, double tMax)
+        public bool Hit(ref HitResult result, in Ray ray, double tMin, double tMax)
         {
-            var oc = ray.Origin - _center;
+            var oc = ray.Origin - Center;
             var a = ray.Direction.LengthSquared();
             var bHalf = oc.Dot(ray.Direction);
-            var c = oc.LengthSquared() - _radius * _radius;
+            var c = oc.LengthSquared() - Radius * Radius;
             var discriminant = bHalf * bHalf - a * c;
 
             if (discriminant < 0)
             {
-                return null;
+                return false;
             }
 
             var squared = Math.Sqrt(discriminant);
@@ -40,18 +40,18 @@ namespace WeekendRayTracer.Models
 
                 if (root < tMin || tMax < root)
                 {
-                    return null;
-
+                    return false;
                 }
             }
 
             var T = root;
             var P = ray.At(T);
-            var outwardNormal = (P - _center) / _radius;
+            var outwardNormal = (P - Center) / Radius;
             var frontFace = ray.Direction.Dot(outwardNormal) < 0;
             var faceNormal = frontFace ? outwardNormal : -outwardNormal;
+            result = new HitResult(T, P, faceNormal, frontFace, Material);
 
-            return new HitResult(T, P, faceNormal, frontFace, _material);
+            return true;
         }
     }
 }

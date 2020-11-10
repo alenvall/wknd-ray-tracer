@@ -4,9 +4,9 @@ using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer.Models.Materials
 {
-    public class Dielectric : IMaterial
+    public readonly struct Dielectric : IMaterial
     {
-        public double _refractionIndex;
+        private double RefractionIndex { get; }
 
         private static int _seed = Environment.TickCount;
         private static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref _seed)));
@@ -14,12 +14,12 @@ namespace WeekendRayTracer.Models.Materials
 
         public Dielectric(double refractionIndex)
         {
-            _refractionIndex = refractionIndex;
+            this.RefractionIndex = refractionIndex;
         }
 
-        public ScatterResult Scatter(Ray ray, HitResult result)
+        public bool Scatter(ref ScatterResult scatterResult, in Ray ray, in HitResult result)
         {
-            double refractionRatio = result.FrontFace ? (1.0 / _refractionIndex) : _refractionIndex;
+            double refractionRatio = result.FrontFace ? (1.0 / RefractionIndex) : RefractionIndex;
             var directionUnit = ray.Direction.Unit();
 
             double cosTheta = Math.Min((-directionUnit).Dot(result.Normal), 1.0);
@@ -37,7 +37,9 @@ namespace WeekendRayTracer.Models.Materials
                 direction = directionUnit.Refract(result.Normal, refractionRatio);
             }
 
-            return new ScatterResult(new Ray(result.P, direction), new Vec3(1.0, 1.0, 1.0));
+            scatterResult = new ScatterResult(new Ray(result.P, direction), new Vec3(1.0, 1.0, 1.0));
+
+            return true;
         }
 
         private double Reflectance(double cosine, double refractionRatio)

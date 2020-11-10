@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer
 {
     public class Scene : IHittable
     {
-        private readonly IList<IHittable> _objects;
+        private IList<IHittable> _objects { get; }
+        private IHittable[] _asArray;
 
         public Scene()
         {
@@ -15,29 +17,27 @@ namespace WeekendRayTracer
         public void Add(IHittable obj)
         {
             _objects.Add(obj);
+            _asArray = _objects.ToArray();
         }
 
-        public void Clear()
+        public bool Hit(ref HitResult finalResult, in Ray ray, double tMin, double tMax)
         {
-            _objects.Clear();
-        }
-
-        public HitResult Hit(Ray ray, double tMin, double tMax)
-        {
-            HitResult finalResult = null;
             var closestSoFar = tMax;
+            var hitAnything = false;
 
-            foreach (var obj in _objects)
+            for (int i = 0; i < _asArray.Length; i++)
             {
-                var result = obj.Hit(ray, tMin, closestSoFar);
-                if (result != null)
+                var obj = _asArray[i];
+                var tempResult = new HitResult();
+                if (obj.Hit(ref tempResult, ray, tMin, closestSoFar))
                 {
-                    closestSoFar = result.T;
-                    finalResult = result;
+                    hitAnything = true;
+                    closestSoFar = tempResult.T;
+                    finalResult = tempResult;
                 }
             }
 
-            return finalResult;
+            return hitAnything;
         }
 
     }

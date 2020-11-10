@@ -2,16 +2,16 @@
 
 namespace WeekendRayTracer.Models.Materials
 {
-    public class Lambertian : IMaterial
+    public readonly struct Lambertian : IMaterial
     {
-        private readonly Vec3 _albedo;
+        private Vec3 Albedo { get; }
 
         public Lambertian(Vec3 albedo)
         {
-            _albedo = albedo;
+            Albedo = albedo;
         }
 
-        public ScatterResult Scatter(Ray ray, HitResult hitResult)
+        public bool Scatter(ref ScatterResult scatterResult, in Ray ray, in HitResult hitResult)
         {
             var scatterDirection = hitResult.Normal + Vec3.RandomUnitVector();
 
@@ -21,8 +21,9 @@ namespace WeekendRayTracer.Models.Materials
             }
 
             var scatteredRay = new Ray(hitResult.P, scatterDirection);
+            scatterResult = new ScatterResult(scatteredRay, Albedo);
 
-            return new ScatterResult(scatteredRay, _albedo);
+            return true;
         }
     }
 }

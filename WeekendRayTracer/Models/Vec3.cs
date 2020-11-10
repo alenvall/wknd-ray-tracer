@@ -4,11 +4,11 @@ using WeekendRayTracer.Extensions;
 
 namespace WeekendRayTracer.Models
 {
-    public class Vec3
+    readonly public struct Vec3
     {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
+        public double X { get; }
+        public double Y { get; }
+        public double Z { get; }
 
         private static int _seed = Environment.TickCount;
         private static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref _seed)));
@@ -21,13 +21,6 @@ namespace WeekendRayTracer.Models
         public static Vec3 operator *(Vec3 u, double t) => new Vec3(u.X * t, u.Y * t, u.Z * t);
         public static Vec3 operator *(double t, Vec3 u) => u * t;
         public static Vec3 operator /(Vec3 u, double t) => u * (1 / t);
-
-        public Vec3()
-        {
-            X = 0.0;
-            Y = 0.0;
-            Z = 0.0;
-        }
 
         public Vec3(double x, double y, double z)
         {
@@ -51,22 +44,22 @@ namespace WeekendRayTracer.Models
             return new Vec3(X, Y, Z) / Length();
         }
 
-        public double Dot(Vec3 v)
+        public double Dot(in Vec3 v)
         {
             return X * v.X + Y * v.Y + Z * v.Z;
         }
 
-        public Vec3 Cross(Vec3 v)
+        public Vec3 Cross(in Vec3 v)
         {
             return new Vec3(Y * v.Z - Z * v.Y, Z * v.X - X * v.Z, X * v.Y - Y * v.X);
         }
 
-        public Vec3 Reflect(Vec3 n)
+        public Vec3 Reflect(in Vec3 n)
         {
             return this - 2 * Dot(n) * n;
         }
 
-        public Vec3 Refract(Vec3 n, double etaIOverEtaT)
+        public Vec3 Refract(in Vec3 n, double etaIOverEtaT)
         {
             var cosTheta = Math.Min((-this).Dot(n), 1.0);
             var rOutPerpendicular = etaIOverEtaT * (this + cosTheta * n);
