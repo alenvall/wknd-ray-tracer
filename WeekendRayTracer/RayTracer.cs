@@ -23,11 +23,11 @@ namespace WeekendRayTracer
         public void Run()
         {
             var aspectRatio = 16.0 / 9.0;
-            var imageWidth = 200;
+            var imageWidth = 1920;
             var imageHeight = (int)(imageWidth / aspectRatio);
-            var samplesPerPixel = 50;
+            var samplesPerPixel = 500;
             var maxDepth = 50;
-            var complexity = 3;
+            var complexity = 11;
             var renderName = $"{imageWidth}x{imageHeight}_{complexity}_{samplesPerPixel}_{maxDepth}";
 
             Console.WriteLine("Setting up scene and camera...");
@@ -41,21 +41,21 @@ namespace WeekendRayTracer
             stopwatch.Stop();
 
             Console.WriteLine($"\nParallel 1 & 2 finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
-            PrintFile(imageWidth, imageHeight, parallel1_2, renderName + $"_para1_2 ({Math.Round(stopwatch.Elapsed.TotalSeconds)})");
+            PrintFile(imageWidth, imageHeight, parallel1_2, renderName + $"_para1_2 ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
 
             stopwatch.Restart();
             var parallel2 = RenderPixelsParallelSecond(imageWidth, imageHeight, samplesPerPixel, maxDepth);
             stopwatch.Stop();
 
             Console.WriteLine($"\nParallel 2 finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
-            PrintFile(imageWidth, imageHeight, parallel2, renderName + $"_para2 ({Math.Round(stopwatch.Elapsed.TotalSeconds)})");
+            PrintFile(imageWidth, imageHeight, parallel2, renderName + $"_para2 ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
 
             stopwatch.Restart();
             var parallel1 = RenderPixelsParallelFirst(imageWidth, imageHeight, samplesPerPixel, maxDepth);
             stopwatch.Stop();
 
             Console.WriteLine($"\nParallel 1 finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
-            PrintFile(imageWidth, imageHeight, parallel1, renderName + $"_para1 ({Math.Round(stopwatch.Elapsed.TotalSeconds)})");
+            PrintFile(imageWidth, imageHeight, parallel1, renderName + $"_para1 ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
 
             //var sequential = RenderPixelsSequential(imageWidth, imageHeight, samplesPerPixel, maxDepth);
             //stopwatch.Stop();
@@ -131,7 +131,7 @@ namespace WeekendRayTracer
                         var u = (i + random.Value.NextDouble()) / (imageWidth - 1);
                         var v = (j + random.Value.NextDouble()) / (imageHeight - 1);
                         var ray = _camera.GetRay(u, v);
-                        color += RayColor(ray, maxDepth);
+                        color += RayColor(in ray, maxDepth);
                     }
 
                     var scale = 1.0 / samples;
@@ -175,7 +175,7 @@ namespace WeekendRayTracer
                         var u = (i + random.Value.NextDouble()) / (imageWidth - 1);
                         var v = (j + random.Value.NextDouble()) / (imageHeight - 1);
                         var ray = _camera.GetRay(u, v);
-                        color += RayColor(ray, maxDepth);
+                        color += RayColor(in ray, maxDepth);
                     }
 
                     var scale = 1.0 / samples;
