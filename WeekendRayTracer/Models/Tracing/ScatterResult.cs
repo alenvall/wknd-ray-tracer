@@ -1,7 +1,8 @@
 ﻿
+
 namespace WeekendRayTracer.Models.Tracing
 {
-    public readonly struct ScatterResult
+    public readonly ref struct ScatterResult
     {
         public Ray ScatteredRay { get; }
         public Vec3 Attenuation { get; }

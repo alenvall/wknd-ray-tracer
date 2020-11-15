@@ -6,28 +6,28 @@ namespace WeekendRayTracer
 {
     public class Scene : IHittable
     {
-        private IList<IHittable> _objects { get; }
-        private IHittable[] _asArray;
+        private readonly IList<IHittable> objects;
+        private IHittable[] array;
 
         public Scene()
         {
-            _objects = new List<IHittable>();
+            objects = new List<IHittable>();
         }
 
         public void Add(IHittable obj)
         {
-            _objects.Add(obj);
-            _asArray = _objects.ToArray();
+            objects.Add(obj);
+            array = objects.ToArray();
         }
 
-        public bool Hit(ref HitResult finalResult, in Ray ray, double tMin, double tMax)
+        public bool Hit(ref HitResult finalResult, in Ray ray, float tMin, float tMax)
         {
             var closestSoFar = tMax;
             var hitAnything = false;
 
-            for (int i = 0; i < _asArray.Length; i++)
+            for (int i = 0; i < array.Length; i++)
             {
-                var obj = _asArray[i];
+                var obj = array[i];
                 var tempResult = new HitResult();
                 if (obj.Hit(ref tempResult, ray, tMin, closestSoFar))
                 {

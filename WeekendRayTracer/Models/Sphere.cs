@@ -7,17 +7,17 @@ namespace WeekendRayTracer.Models
     public readonly struct Sphere : IHittable
     {
         private Vec3 Center { get; }
-        private double Radius { get; }
+        private float Radius { get; }
         private IMaterial Material { get; }
 
-        public Sphere(Vec3 center, double radius, IMaterial material)
+        public Sphere(Vec3 center, float radius, IMaterial material)
         {
             Center = center;
             Radius = radius;
             Material = material;
         }
 
-        public bool Hit(ref HitResult result, in Ray ray, double tMin, double tMax)
+        public bool Hit(ref HitResult result, in Ray ray, float tMin, float tMax)
         {
             var oc = ray.Origin - Center;
             var a = ray.Direction.LengthSquared();
@@ -44,7 +44,7 @@ namespace WeekendRayTracer.Models
                 }
             }
 
-            var T = root;
+            var T = (float)root;
             var P = ray.At(T);
             var outwardNormal = (P - Center) / Radius;
             var frontFace = ray.Direction.Dot(outwardNormal) < 0;

@@ -37,26 +37,13 @@ namespace WeekendRayTracer
             var stopwatch = new Stopwatch();
 
             stopwatch.Start();
-            var parallel1_2 = RenderPixelsParallelFirstAndSecond(imageWidth, imageHeight, samplesPerPixel, maxDepth);
+            var parallel = RenderPixels(imageWidth, imageHeight, samplesPerPixel, maxDepth);
             stopwatch.Stop();
 
-            Console.WriteLine($"\nParallel 1 & 2 finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
-            PrintFile(imageWidth, imageHeight, parallel1_2, renderName + $"_para1_2 ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
+            Console.WriteLine($"\nFinished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
+            PrintFile(imageWidth, imageHeight, parallel, renderName + $"_para1_2 ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
 
-            stopwatch.Restart();
-            var parallel2 = RenderPixelsParallelSecond(imageWidth, imageHeight, samplesPerPixel, maxDepth);
-            stopwatch.Stop();
-
-            Console.WriteLine($"\nParallel 2 finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
-            PrintFile(imageWidth, imageHeight, parallel2, renderName + $"_para2 ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
-
-            stopwatch.Restart();
-            var parallel1 = RenderPixelsParallelFirst(imageWidth, imageHeight, samplesPerPixel, maxDepth);
-            stopwatch.Stop();
-
-            Console.WriteLine($"\nParallel 1 finished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
-            PrintFile(imageWidth, imageHeight, parallel1, renderName + $"_para1 ({Math.Round(stopwatch.Elapsed.TotalMinutes)})");
-
+            //stopwatch.Restart();
             //var sequential = RenderPixelsSequential(imageWidth, imageHeight, samplesPerPixel, maxDepth);
             //stopwatch.Stop();
 
@@ -67,7 +54,7 @@ namespace WeekendRayTracer
             Console.ReadKey();
         }
 
-        private List<Vec3> RenderPixelsParallelFirstAndSecond(int imageWidth, int imageHeight, int samples, int maxDepth)
+        private List<Vec3> RenderPixels(int imageWidth, int imageHeight, int samples, int maxDepth)
         {
             var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
             var totalPixels = imageHeight * imageWidth;
@@ -84,52 +71,8 @@ namespace WeekendRayTracer
                     {
                         var j = imageHeight - row;
                         var i = column - 1;
-                        var u = (i + random.Value.NextDouble()) / (imageWidth - 1);
-                        var v = (j + random.Value.NextDouble()) / (imageHeight - 1);
-                        var ray = _camera.GetRay(u, v);
-                        color += RayColor(ray, maxDepth);
-                    }
-
-                    var scale = 1.0 / samples;
-                    var red = Math.Sqrt(scale * color.X);
-                    var green = Math.Sqrt(scale * color.Y);
-                    var blue = Math.Sqrt(scale * color.Z);
-
-                    int clampedRed = (int)(256 * Math.Clamp(red, 0.0, 0.999));
-                    int clampedGreen = (int)(256 * Math.Clamp(green, 0.0, 0.999));
-                    int clampedBlue = (int)(256 * Math.Clamp(blue, 0.0, 0.999));
-
-                    var pixel = new Vec3(clampedRed, clampedGreen, clampedBlue);
-
-                    var index = (row - 1) * imageWidth + column;
-                    queue.Enqueue(new KeyValuePair<int, Vec3>(index, pixel));
-                });
-
-                Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * queue.Count / totalPixels));
-            });
-
-            return queue.ToArray().OrderBy(pair => pair.Key).Select(pair => pair.Value).ToList();
-        }
-
-        private List<Vec3> RenderPixelsParallelSecond(int imageWidth, int imageHeight, int samples, int maxDepth)
-        {
-            var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
-            var totalPixels = imageHeight * imageWidth;
-            int seed = Environment.TickCount;
-            var random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
-
-            Console.Write("Rendering scene... 0%");
-            for (int row = 1; row < imageHeight + 1; row++)
-            {
-                Parallel.For(1, imageWidth + 1, column =>
-                {
-                    var color = new Vec3(0, 0, 0);
-                    for (int s = 1; s <= samples; s++)
-                    {
-                        var j = imageHeight - row;
-                        var i = column - 1;
-                        var u = (i + random.Value.NextDouble()) / (imageWidth - 1);
-                        var v = (j + random.Value.NextDouble()) / (imageHeight - 1);
+                        var u = (i + random.Value.NextFloat()) / (imageWidth - 1);
+                        var v = (j + random.Value.NextFloat()) / (imageHeight - 1);
                         var ray = _camera.GetRay(u, v);
                         color += RayColor(in ray, maxDepth);
                     }
@@ -150,53 +93,9 @@ namespace WeekendRayTracer
                 });
 
                 Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * queue.Count / totalPixels));
-            }
-
-            return queue.ToArray().OrderBy(pair => pair.Key).Select(pair => pair.Value).ToList();
-        }
-
-        private List<Vec3> RenderPixelsParallelFirst(int imageWidth, int imageHeight, int samples, int maxDepth)
-        {
-            var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
-            var totalPixels = imageHeight * imageWidth;
-            int seed = Environment.TickCount;
-            var random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
-
-            Console.Write("Rendering scene... 0%");
-            Parallel.For(1, imageHeight + 1, row =>
-            {
-                for (int column = 1; column < imageWidth + 1; column++)
-                {
-                    var color = new Vec3(0, 0, 0);
-                    for (int s = 1; s <= samples; s++)
-                    {
-                        var j = imageHeight - row;
-                        var i = column - 1;
-                        var u = (i + random.Value.NextDouble()) / (imageWidth - 1);
-                        var v = (j + random.Value.NextDouble()) / (imageHeight - 1);
-                        var ray = _camera.GetRay(u, v);
-                        color += RayColor(in ray, maxDepth);
-                    }
-
-                    var scale = 1.0 / samples;
-                    var red = Math.Sqrt(scale * color.X);
-                    var green = Math.Sqrt(scale * color.Y);
-                    var blue = Math.Sqrt(scale * color.Z);
-
-                    int clampedRed = (int)(256 * Math.Clamp(red, 0.0, 0.999));
-                    int clampedGreen = (int)(256 * Math.Clamp(green, 0.0, 0.999));
-                    int clampedBlue = (int)(256 * Math.Clamp(blue, 0.0, 0.999));
-
-                    var pixel = new Vec3(clampedRed, clampedGreen, clampedBlue);
-
-                    var index = (row - 1) * imageWidth + column;
-                    queue.Enqueue(new KeyValuePair<int, Vec3>(index, pixel));
-                }
-
-                Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * queue.Count / totalPixels));
             });
 
-            return queue.ToArray().OrderBy(pair => pair.Key).Select(pair => pair.Value).ToList();
+            return queue.OrderBy(pair => pair.Key).Select(pair => pair.Value).ToList();
         }
 
         private List<Vec3> RenderPixelsSequential(int imageWidth, int imageHeight, int samples, int maxDepth)
@@ -212,10 +111,10 @@ namespace WeekendRayTracer
                     var color = new Vec3(0, 0, 0);
                     for (int s = 0; s < samples; ++s)
                     {
-                        var u = (i + _rand.NextDouble()) / (imageWidth - 1);
-                        var v = (j + _rand.NextDouble()) / (imageHeight - 1);
+                        var u = (i + _rand.NextFloat()) / (imageWidth - 1);
+                        var v = (j + _rand.NextFloat()) / (imageHeight - 1);
                         var ray = _camera.GetRay(u, v);
-                        color += RayColor(ray, maxDepth);
+                        color += RayColor(in ray, maxDepth);
                     }
 
                     var scale = 1.0 / samples;
@@ -243,8 +142,8 @@ namespace WeekendRayTracer
                 return new Vec3(0, 0, 0);
             }
 
-            var hitResult = new HitResult();
-            if (_scene.Hit(ref hitResult, ray, 0.001, double.PositiveInfinity))
+            HitResult hitResult = new HitResult();
+            if (_scene.Hit(ref hitResult, ray, 0.001f, float.PositiveInfinity))
             {
                 var scatterResult = new ScatterResult();
                 if (hitResult.Material.Scatter(ref scatterResult, ray, hitResult))
@@ -256,15 +155,15 @@ namespace WeekendRayTracer
             }
 
             var directionUnit = ray.Direction.Unit();
-            var t = 0.5 * (directionUnit.Y + 1.0);
-            return (1.0 - t) * new Vec3(1.0, 1.0, 1.0) + t * new Vec3(0.5, 0.7, 1.0);
+            var t = 0.5f * (directionUnit.Y + 1.0f);
+            return (1.0f - t) * new Vec3(1.0f, 1.0f, 1.0f) + t * new Vec3(0.5f, 0.7f, 1.0f);
         }
 
         private Scene GenerateRandomScene(int complexity)
         {
             var scene = new Scene();
 
-            var groundMaterial = new Lambertian(new Vec3(0.5, 0.5, 0.5));
+            var groundMaterial = new Lambertian(new Vec3(0.5f, 0.5f, 0.5f));
             scene.Add(new Sphere(new Vec3(0, -1000, 0), 1000, groundMaterial));
 
             for (int a = -complexity; a < complexity; a++)
@@ -272,61 +171,61 @@ namespace WeekendRayTracer
                 for (int b = -complexity; b < complexity; b++)
                 {
                     var chooseMaterial = _rand.NextDouble();
-                    var center = new Vec3(a + 0.9 + _rand.NextDouble(), 0.2, b + 0.9 * _rand.NextDouble());
+                    var center = new Vec3(a + 0.9f + _rand.NextFloat(), 0.2f, b + 0.9f * _rand.NextFloat());
 
-                    if ((center - new Vec3(4, 0.2, 0)).Length() > 0.9)
+                    if ((center - new Vec3(4, 0.2f, 0)).Length() > 0.9f)
                     {
                         IMaterial sphereMaterial;
 
-                        if (chooseMaterial < 0.8)
+                        if (chooseMaterial < 0.8f)
                         {
                             // Diffuse
                             var albedo = Vec3.Random() * Vec3.Random();
                             sphereMaterial = new Lambertian(albedo);
-                            scene.Add(new Sphere(center, 0.2, sphereMaterial));
+                            scene.Add(new Sphere(center, 0.2f, sphereMaterial));
                         }
                         else if (chooseMaterial < 0.95)
                         {
                             // Metal
-                            var albedo = Vec3.Random(0.5, 1);
-                            var fuzz = _rand.NextDouble(0, 0.5);
+                            var albedo = Vec3.Random(0.5f, 1);
+                            var fuzz = _rand.NextFloat(0, 0.5f);
                             sphereMaterial = new Metal(albedo, fuzz);
-                            scene.Add(new Sphere(center, 0.2, sphereMaterial));
+                            scene.Add(new Sphere(center, 0.2f, sphereMaterial));
                         }
                         else
                         {
                             // Glass
-                            sphereMaterial = new Dielectric(1.5);
-                            scene.Add(new Sphere(center, 0.2, sphereMaterial));
+                            sphereMaterial = new Dielectric(1.5f);
+                            scene.Add(new Sphere(center, 0.2f, sphereMaterial));
                         }
                     }
                 }
             }
 
-            var material1 = new Dielectric(1.5);
-            scene.Add(new Sphere(new Vec3(0, 1, 0), 1.0, material1));
+            var material1 = new Dielectric(1.5f);
+            scene.Add(new Sphere(new Vec3(0, 1, 0), 1.0f, material1));
 
-            var material2 = new Lambertian(new Vec3(0.4, 0.2, 0.1));
-            scene.Add(new Sphere(new Vec3(-4, 1, 0), 1.0, material2));
+            var material2 = new Lambertian(new Vec3(0.4f, 0.2f, 0.1f));
+            scene.Add(new Sphere(new Vec3(-4, 1, 0), 1.0f, material2));
 
-            var material3 = new Metal(new Vec3(0.7, 0.6, 0.5), 0.0);
-            scene.Add(new Sphere(new Vec3(4, 1, 0), 1.0, material3));
+            var material3 = new Metal(new Vec3(0.7f, 0.6f, 0.5f), 0.0f);
+            scene.Add(new Sphere(new Vec3(4, 1, 0), 1.0f, material3));
 
             return scene;
         }
 
-        private Camera SetupCamera(double aspectRatio)
+        private static Camera SetupCamera(double aspectRatio)
         {
             var lookFrom = new Vec3(13, 2, 3);
             var lookAt = new Vec3(0, 0, 0);
             var vUp = new Vec3(0, 1, 0);
             var focusDistance = 10;
-            var aperture = 0.15;
+            var aperture = 0.15f;
 
-            return new Camera(lookFrom, lookAt, vUp, 20, aspectRatio, aperture, focusDistance);
+            return new Camera(lookFrom, lookAt, vUp, 20, (float)aspectRatio, aperture, focusDistance);
         }
 
-        private void PrintFile(int imageWidth, int imageHeight, List<Vec3> pixels, string renderName)
+        private static void PrintFile(int imageWidth, int imageHeight, List<Vec3> pixels, string renderName)
         {
             var sb = new StringBuilder($"P3\n{imageWidth} {imageHeight} \n255\n");
 

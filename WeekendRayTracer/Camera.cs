@@ -5,43 +5,43 @@ using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer
 {
-    public class Camera
+    public readonly struct Camera
     {
-        private readonly Vec3 _origin;
-        private readonly Vec3 _lowerLeftCorner;
-        private readonly Vec3 _horizontal;
-        private readonly Vec3 _vertical;
-        private readonly Vec3 _w;
-        private readonly Vec3 _u;
-        private readonly Vec3 _v;
-        private readonly double _lensRadius;
+        private Vec3 Origin { get; }
+        private Vec3 LowerLeftCorner { get; }
+        private Vec3 Horizontal { get; }
+        private Vec3 Vertical { get; }
+        private Vec3 W { get; }
+        private Vec3 U { get; }
+        private Vec3 V { get; }
+        private float LensRadius { get; }
 
-        public Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vUp, double verticalFovDeg, double aspectRatio, double aperture, double focusDistance)
+        public Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vUp, float verticalFovDeg, float aspectRatio, float aperture, float focusDistance)
         {
             var theta = verticalFovDeg.ToRadians();
-            var h = Math.Tan(theta / 2);
-            var viewportHeight = 2.0 * h;
+            var h = (float)Math.Tan(theta / 2);
+            var viewportHeight = 2.0f * h;
             var viewportWidth = aspectRatio * viewportHeight;
 
-            _w = (lookFrom - lookAt).Unit();
-            _u = (vUp.Cross(_w)).Unit();
-            _v = _w.Cross(_u);
+            W = (lookFrom - lookAt).Unit();
+            U = (vUp.Cross(W)).Unit();
+            V = W.Cross(U);
 
-            _origin = lookFrom;
-            _horizontal = focusDistance * viewportWidth * _u;
-            _vertical = focusDistance * viewportHeight * _v;
-            _lowerLeftCorner = _origin - _horizontal / 2 - _vertical / 2 - focusDistance * _w;
+            Origin = lookFrom;
+            Horizontal = focusDistance * viewportWidth * U;
+            Vertical = focusDistance * viewportHeight * V;
+            LowerLeftCorner = Origin - Horizontal / 2 - Vertical / 2 - focusDistance * W;
 
-            _lensRadius = aperture / 2;
+            LensRadius = aperture / 2;
         }
 
-        public Ray GetRay(double s, double t)
+        public Ray GetRay(float s, float t)
         {
-            var randomRay = _lensRadius * Vec3.RandomInUnitDisk();
-            var offset = _u * randomRay.X + _v * randomRay.Y;
-            var direction = _lowerLeftCorner + s * _horizontal + t * _vertical - _origin;
+            var randomRay = LensRadius * Vec3.RandomInUnitDisk();
+            var offset = U * randomRay.X + V * randomRay.Y;
+            var direction = LowerLeftCorner + s * Horizontal + t * Vertical - Origin;
 
-            return new Ray(_origin + offset, direction - offset);
+            return new Ray(Origin + offset, direction - offset);
         }
     }
 }

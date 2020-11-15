@@ -5,9 +5,9 @@ namespace WeekendRayTracer.Models.Materials
     public readonly struct Metal : IMaterial
     {
         private Vec3 Albedo { get; }
-        private double Fuzz { get; }
+        private float Fuzz { get; }
 
-        public Metal(Vec3 albedo, double fuzz)
+        public Metal(Vec3 albedo, float fuzz)
         {
             Albedo = albedo;
             Fuzz = fuzz;

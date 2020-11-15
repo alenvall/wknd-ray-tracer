@@ -12,7 +12,7 @@ namespace WeekendRayTracer.Models.Tracing
             Direction = direction;
         }
 
-        public Vec3 At(double t)
+        public Vec3 At(float t)
         {
             return Origin + Direction * t;
         }
