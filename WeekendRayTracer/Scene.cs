@@ -4,19 +4,12 @@ using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer
 {
-    public class Scene : IHittable
+    public readonly struct Scene : IHittable
     {
-        private readonly IList<IHittable> objects;
-        private IHittable[] array;
+        private IHittable[] array { get; }
 
-        public Scene()
+        public Scene(IList<IHittable> objects)
         {
-            objects = new List<IHittable>();
-        }
-
-        public void Add(IHittable obj)
-        {
-            objects.Add(obj);
             array = objects.ToArray();
         }
 
