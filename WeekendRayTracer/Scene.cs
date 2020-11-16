@@ -1,43 +1,36 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer
 {
-    public class Scene : IHittable
+    public readonly struct Scene : IHittable
     {
-        private readonly IList<IHittable> _objects;
+        private IHittable[] array { get; }
 
-        public Scene()
+        public Scene(IList<IHittable> objects)
         {
-            _objects = new List<IHittable>();
+            array = objects.ToArray();
         }
 
-        public void Add(IHittable obj)
+        public bool Hit(ref HitResult finalResult, in Ray ray, float tMin, float tMax)
         {
-            _objects.Add(obj);
-        }
-
-        public void Clear()
-        {
-            _objects.Clear();
-        }
-
-        public HitResult Hit(Ray ray, double tMin, double tMax)
-        {
-            HitResult finalResult = null;
             var closestSoFar = tMax;
+            var hitAnything = false;
 
-            foreach (var obj in _objects)
+            for (int i = 0; i < array.Length; i++)
             {
-                var result = obj.Hit(ray, tMin, closestSoFar);
-                if (result != null)
+                var obj = array[i];
+                var tempResult = new HitResult();
+                if (obj.Hit(ref tempResult, ray, tMin, closestSoFar))
                 {
-                    closestSoFar = result.T;
-                    finalResult = result;
+                    hitAnything = true;
+                    closestSoFar = tempResult.T;
+                    finalResult = tempResult;
                 }
             }
 
-            return finalResult;
+            return hitAnything;
         }
 
     }

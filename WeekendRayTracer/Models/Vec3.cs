@@ -1,76 +1,68 @@
 ﻿using System;
+using System.Numerics;
 using System.Threading;
 using WeekendRayTracer.Extensions;
 
 namespace WeekendRayTracer.Models
 {
-    public class Vec3
+    public readonly struct Vec3
     {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
+        private Vector3 Vector { get; }
+
+        public float X { get => Vector.X; }
+        public float Y { get => Vector.Y; }
+        public float Z { get => Vector.Z; }
+        public float LengthSquared() => Vector.LengthSquared();
+        public float Length() => Vector.Length();
 
         private static int _seed = Environment.TickCount;
         private static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref _seed)));
         private static Random Rand => random.Value;
 
         public static Vec3 operator -(Vec3 u) => new Vec3(-u.X, -u.Y, -u.Z);
-        public static Vec3 operator +(Vec3 u, Vec3 v) => new Vec3(u.X + v.X, u.Y + v.Y, u.Z + v.Z);
-        public static Vec3 operator -(Vec3 u, Vec3 v) => new Vec3(u.X - v.X, u.Y - v.Y, u.Z - v.Z);
-        public static Vec3 operator *(Vec3 u, Vec3 v) => new Vec3(u.X * v.X, u.Y * v.Y, u.Z * v.Z);
-        public static Vec3 operator *(Vec3 u, double t) => new Vec3(u.X * t, u.Y * t, u.Z * t);
-        public static Vec3 operator *(double t, Vec3 u) => u * t;
-        public static Vec3 operator /(Vec3 u, double t) => u * (1 / t);
+        public static Vec3 operator +(Vec3 u, Vec3 v) => new Vec3(u.Vector + v.Vector);
+        public static Vec3 operator -(Vec3 u, Vec3 v) => new Vec3(u.Vector - v.Vector);
+        public static Vec3 operator *(Vec3 u, Vec3 v) => new Vec3(u.Vector * v.Vector);
+        public static Vec3 operator /(Vec3 u, Vec3 v) => new Vec3(u.Vector / v.Vector);
+        public static Vec3 operator *(Vec3 u, float t) => new Vec3(u.Vector * t);
+        public static Vec3 operator *(float t, Vec3 u) => u * t;
+        public static Vec3 operator /(Vec3 u, float t) => u * (1 / t);
 
-        public Vec3()
+        public Vec3(float x, float y, float z)
         {
-            X = 0.0;
-            Y = 0.0;
-            Z = 0.0;
+            Vector = new Vector3(x, y, z);
         }
 
-        public Vec3(double x, double y, double z)
+        private Vec3(Vector3 vector3)
         {
-            X = x;
-            Y = y;
-            Z = z;
-        }
-
-        public double LengthSquared()
-        {
-            return X * X + Y * Y + Z * Z;
-        }
-
-        public double Length()
-        {
-            return Math.Sqrt(LengthSquared());
+            Vector = new Vector3(vector3.X, vector3.Y, vector3.Z);
         }
 
         public Vec3 Unit()
         {
-            return new Vec3(X, Y, Z) / Length();
+            return new Vec3(Vector3.Normalize(Vector));
         }
 
-        public double Dot(Vec3 v)
+        public float Dot(in Vec3 v)
         {
-            return X * v.X + Y * v.Y + Z * v.Z;
+            return Vector3.Dot(Vector, v.Vector);
         }
 
-        public Vec3 Cross(Vec3 v)
+        public Vec3 Cross(in Vec3 v)
         {
-            return new Vec3(Y * v.Z - Z * v.Y, Z * v.X - X * v.Z, X * v.Y - Y * v.X);
+            return new Vec3(Vector3.Cross(Vector, v.Vector));
         }
 
-        public Vec3 Reflect(Vec3 n)
+        public Vec3 Reflect(in Vec3 normal)
         {
-            return this - 2 * Dot(n) * n;
+            return new Vec3(Vector3.Reflect(Vector, normal.Vector));
         }
 
-        public Vec3 Refract(Vec3 n, double etaIOverEtaT)
+        public Vec3 Refract(in Vec3 normal, float etaIOverEtaT)
         {
-            var cosTheta = Math.Min((-this).Dot(n), 1.0);
-            var rOutPerpendicular = etaIOverEtaT * (this + cosTheta * n);
-            var rOutParallel = -Math.Sqrt(Math.Abs(1.0 - rOutPerpendicular.LengthSquared())) * n;
+            var cosTheta = (float)Math.Min((-this).Dot(normal), 1.0);
+            var rOutPerpendicular = etaIOverEtaT * (this + cosTheta * normal);
+            var rOutParallel = (float)-Math.Sqrt((float)Math.Abs(1.0 - rOutPerpendicular.LengthSquared())) * normal;
 
             return rOutPerpendicular + rOutParallel;
         }
@@ -83,24 +75,24 @@ namespace WeekendRayTracer.Models
 
         public override string ToString()
         {
-            return $"{X}, {Y}, {Z}";
+            return $"{Vector.X}, {Vector.Y}, {Vector.Z}";
         }
 
         public static Vec3 Random()
         {
-            return new Vec3(Rand.NextDouble(), Rand.NextDouble(), Rand.NextDouble());
+            return new Vec3((float)Rand.NextDouble(), (float)Rand.NextDouble(), (float)Rand.NextDouble());
         }
 
-        public static Vec3 Random(double min, double max)
+        public static Vec3 Random(float min, float max)
         {
-            return new Vec3(Rand.NextDouble(min, max), Rand.NextDouble(min, max), Rand.NextDouble(min, max));
+            return new Vec3(Rand.NextFloat(min, max), Rand.NextFloat(min, max), Rand.NextFloat(min, max));
         }
 
         public static Vec3 RandomInUnitSphere()
         {
             while (true)
             {
-                var p = Vec3.Random(-1, 1);
+                var p = Random(-1, 1);
                 if (p.LengthSquared() < 1)
                 {
                     return p;
@@ -117,7 +109,7 @@ namespace WeekendRayTracer.Models
         {
             while (true)
             {
-                var p = new Vec3(Rand.NextDouble(-1, 1), Rand.NextDouble(-1, 1), 0);
+                var p = new Vec3(Rand.NextFloat(-1, 1), Rand.NextFloat(-1, 1), 0);
 
                 if (p.LengthSquared() < 1)
                 {

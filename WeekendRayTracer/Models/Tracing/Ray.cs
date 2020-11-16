@@ -1,7 +1,7 @@
 ﻿
 namespace WeekendRayTracer.Models.Tracing
 {
-    public class Ray
+    public readonly struct Ray
     {
         public Vec3 Origin { get; }
         public Vec3 Direction { get; }
@@ -12,7 +12,7 @@ namespace WeekendRayTracer.Models.Tracing
             Direction = direction;
         }
 
-        public Vec3 At(double t)
+        public Vec3 At(float t)
         {
             return Origin + Direction * t;
         }

@@ -2,28 +2,28 @@
 
 namespace WeekendRayTracer.Models.Materials
 {
-    public class Metal : IMaterial
+    public readonly struct Metal : IMaterial
     {
-        private readonly Vec3 _albedo;
-        private readonly double _fuzz;
+        private Vec3 Albedo { get; }
+        private float Fuzz { get; }
 
-        public Metal(Vec3 albedo, double fuzz)
+        public Metal(Vec3 albedo, float fuzz)
         {
-            _albedo = albedo;
-            _fuzz = fuzz;
+            Albedo = albedo;
+            Fuzz = fuzz;
         }
 
-        public ScatterResult Scatter(Ray ray, HitResult result)
+        public bool Scatter(ref ScatterResult scatterResult, in Ray ray, in HitResult hitResult)
         {
-            var reflected = ray.Direction.Unit().Reflect(result.Normal);
-            var scatteredRay = new Ray(result.P, reflected + _fuzz * Vec3.RandomInUnitSphere());
+            var reflected = ray.Direction.Unit().Reflect(hitResult.Normal);
+            var scatteredRay = new Ray(hitResult.P, reflected + Fuzz * Vec3.RandomInUnitSphere());
 
-            if (scatteredRay.Direction.Dot(result.Normal) > 0)
+            if (scatteredRay.Direction.Dot(hitResult.Normal) > 0)
             {
-                return new ScatterResult(scatteredRay, _albedo);
+                scatterResult = new ScatterResult(scatteredRay, Albedo);
             }
 
-            return null;
+            return true;
         }
     }
 }

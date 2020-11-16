@@ -4,22 +4,22 @@ using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer.Models.Materials
 {
-    public class Dielectric : IMaterial
+    public readonly struct Dielectric : IMaterial
     {
-        public double _refractionIndex;
+        private float RefractionIndex { get; }
 
         private static int _seed = Environment.TickCount;
         private static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref _seed)));
         private static Random Rand => random.Value;
 
-        public Dielectric(double refractionIndex)
+        public Dielectric(float refractionIndex)
         {
-            _refractionIndex = refractionIndex;
+            this.RefractionIndex = refractionIndex;
         }
 
-        public ScatterResult Scatter(Ray ray, HitResult result)
+        public bool Scatter(ref ScatterResult scatterResult, in Ray ray, in HitResult result)
         {
-            double refractionRatio = result.FrontFace ? (1.0 / _refractionIndex) : _refractionIndex;
+            float refractionRatio = result.FrontFace ? (1.0f / RefractionIndex) : RefractionIndex;
             var directionUnit = ray.Direction.Unit();
 
             double cosTheta = Math.Min((-directionUnit).Dot(result.Normal), 1.0);
@@ -37,10 +37,12 @@ namespace WeekendRayTracer.Models.Materials
                 direction = directionUnit.Refract(result.Normal, refractionRatio);
             }
 
-            return new ScatterResult(new Ray(result.P, direction), new Vec3(1.0, 1.0, 1.0));
+            scatterResult = new ScatterResult(new Ray(result.P, direction), new Vec3(1.0f, 1.0f, 1.0f));
+
+            return true;
         }
 
-        private double Reflectance(double cosine, double refractionRatio)
+        private static double Reflectance(double cosine, double refractionRatio)
         {
             // Schlick's approximation 
             var r0 = (1 - refractionRatio) / (1 + refractionRatio);

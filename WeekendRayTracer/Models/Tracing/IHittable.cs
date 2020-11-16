@@ -3,6 +3,6 @@ namespace WeekendRayTracer.Models.Tracing
 {
     public interface IHittable
     {
-        public abstract HitResult Hit(Ray ray, double tMin, double tMax);
+        public abstract bool Hit(ref HitResult result, in Ray ray, float tMin, float tMax);
     }
 }

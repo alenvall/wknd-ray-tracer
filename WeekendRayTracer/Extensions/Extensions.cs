@@ -4,14 +4,20 @@ namespace WeekendRayTracer.Extensions
 {
     public static class Extensions
     {
-        public static double ToRadians(this double degrees)
+        public static float ToRadians(this float degrees)
         {
-            return (degrees * Math.PI) / 180;
+            return (degrees * (float)Math.PI) / 180;
         }
 
-        public static double NextDouble(this Random random, double min, double max)
+        public static float NextFloat(this Random random)
         {
-            return min + (max - min) * random.NextDouble();
+            return (float)random.NextDouble();
         }
+
+        public static float NextFloat(this Random random, float min, float max)
+        {
+            return min + (max - min) * (float)random.NextDouble();
+        }
+
     }
 }
