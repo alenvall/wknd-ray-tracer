@@ -16,7 +16,7 @@ namespace WeekendRayTracer.Models.Materials
         public bool Scatter(ref ScatterResult scatterResult, in Ray ray, in HitResult hitResult)
         {
             var reflected = ray.Direction.Unit().Reflect(hitResult.Normal);
-            var scatteredRay = new Ray(hitResult.P, reflected + Fuzz * Vec3.RandomInUnitSphere());
+            var scatteredRay = new Ray(hitResult.P, reflected + Fuzz * Vec3.RandomInUnitSphere(), ray.Time);
 
             if (scatteredRay.Direction.Dot(hitResult.Normal) > 0)
             {

@@ -45,7 +45,7 @@ namespace WeekendRayTracer
             Console.ReadKey();
         }
 
-        private List<Vec3> RenderPixels(int imageWidth, int imageHeight, int samples, int maxDepth, Camera camera, Scene scene)
+        private static List<Vec3> RenderPixels(int imageWidth, int imageHeight, int samples, int maxDepth, Camera camera, Scene scene)
         {
             var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
             var totalPixels = imageHeight * imageWidth;
@@ -141,7 +141,8 @@ namespace WeekendRayTracer
                             // Diffuse
                             var albedo = Vec3.Random() * Vec3.Random();
                             sphereMaterial = new Lambertian(albedo);
-                            objects.Add(new Sphere(center, 0.2f, sphereMaterial));
+                            var center2 = center + new Vec3(0, _rand.NextFloat(0, 0.5f), 0);
+                            objects.Add(new MovingSphere(center, center2, 0.0f, 1.0f, 0.2f, sphereMaterial));
                         }
                         else if (chooseMaterial < 0.95)
                         {
@@ -181,7 +182,7 @@ namespace WeekendRayTracer
             var focusDistance = 10;
             var aperture = 0.15f;
 
-            return new Camera(lookFrom, lookAt, vUp, 20, (float)aspectRatio, aperture, focusDistance);
+            return new Camera(lookFrom, lookAt, vUp, 20, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
         }
 
         private static void PrintFile(int imageWidth, int imageHeight, List<Vec3> pixels, string renderName)

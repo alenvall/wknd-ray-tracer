@@ -37,7 +37,7 @@ namespace WeekendRayTracer.Models.Materials
                 direction = directionUnit.Refract(result.Normal, refractionRatio);
             }
 
-            scatterResult = new ScatterResult(new Ray(result.P, direction), new Vec3(1.0f, 1.0f, 1.0f));
+            scatterResult = new ScatterResult(new Ray(result.P, direction, ray.Time), new Vec3(1.0f, 1.0f, 1.0f));
 
             return true;
         }
