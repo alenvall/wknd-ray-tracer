@@ -20,7 +20,7 @@ namespace WeekendRayTracer.Models.Materials
                 scatterDirection = hitResult.Normal;
             }
 
-            var scatteredRay = new Ray(hitResult.P, scatterDirection);
+            var scatteredRay = new Ray(hitResult.P, scatterDirection, ray.Time);
             scatterResult = new ScatterResult(scatteredRay, Albedo);
 
             return true;

@@ -73,11 +73,6 @@ namespace WeekendRayTracer.Models
             return (Math.Abs(X) < s) && (Math.Abs(Y) < s) && (Math.Abs(Z) < s);
         }
 
-        public override string ToString()
-        {
-            return $"{Vector.X}, {Vector.Y}, {Vector.Z}";
-        }
-
         public static Vec3 Random()
         {
             return new Vec3((float)Rand.NextDouble(), (float)Rand.NextDouble(), (float)Rand.NextDouble());
@@ -117,5 +112,6 @@ namespace WeekendRayTracer.Models
                 }
             }
         }
+
     }
 }
