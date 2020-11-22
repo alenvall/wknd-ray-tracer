@@ -9,28 +9,43 @@ using System.Threading;
 using System.Threading.Tasks;
 using WeekendRayTracer.Extensions;
 using WeekendRayTracer.Models;
-using WeekendRayTracer.Models.Materials;
 using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer
 {
     public class RayTracer
     {
-        private readonly Random _rand = new Random();
-
-        public void Run()
+        public static void Run()
         {
             var aspectRatio = 16.0 / 9.0;
-            var imageWidth = 600;
+            var imageWidth = 400;
             var imageHeight = (int)(imageWidth / aspectRatio);
-            var samplesPerPixel = 200;
+            var samplesPerPixel = 50;
             var maxDepth = 50;
-            var complexity = 7;
+            var complexity = 5;
             var renderName = $"{imageWidth}x{imageHeight}_{complexity}_{samplesPerPixel}_{maxDepth}";
 
             Console.WriteLine("Setting up scene and camera...");
-            var camera = SetupCamera(aspectRatio);
-            var scene = GenerateRandomScene(complexity);
+            Camera camera;
+            Scene scene;
+
+            switch (1)
+            {
+                case 1:
+                    var vFov = 20;
+                    var focusDistance = 10;
+                    var aperture = 0.15f;
+                    var lookAt = new Vec3(0, 0, 0);
+                    var lookFrom = new Vec3(13, 2, 3);
+                    camera =  new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
+                    scene = Scene.TwoSpheres();
+                    break;
+
+                default:
+                    camera = Camera.StandardCamera(aspectRatio);
+                    scene = Scene.RandomSphereScene(complexity);
+                    break;
+            }
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -138,76 +153,6 @@ namespace WeekendRayTracer
             var directionUnit = ray.Direction.Unit();
             var t = 0.5f * (directionUnit.Y + 1.0f);
             return (1.0f - t) * new Vec3(1.0f, 1.0f, 1.0f) + t * new Vec3(0.5f, 0.7f, 1.0f);
-        }
-
-        private Scene GenerateRandomScene(int complexity)
-        {
-            var world = new List<IHittable>();
-
-            var groundMaterial = new Lambertian(new Vec3(0.5f, 0.5f, 0.5f));
-            world.Add(new Sphere(new Vec3(0, -1000, 0), 1000, groundMaterial));
-
-            for (int a = -complexity; a < complexity; a++)
-            {
-                for (int b = -complexity; b < complexity; b++)
-                {
-                    var chooseMaterial = _rand.NextDouble();
-                    var center = new Vec3(a + 0.9f + _rand.NextFloat(), 0.2f, b + 0.9f * _rand.NextFloat());
-
-                    if ((center - new Vec3(4, 0.2f, 0)).Length() > 0.9f)
-                    {
-                        IMaterial sphereMaterial;
-
-                        if (chooseMaterial < 0.8f)
-                        {
-                            // Diffuse
-                            var albedo = Vec3.Random() * Vec3.Random();
-                            sphereMaterial = new Lambertian(albedo);
-                            var center2 = center + new Vec3(0, _rand.NextFloat(0, 0.5f), 0);
-                            world.Add(new Sphere(center, 0.2f, sphereMaterial));
-                        }
-                        else if (chooseMaterial < 0.95)
-                        {
-                            // Metal
-                            var albedo = Vec3.Random(0.5f, 1);
-                            var fuzz = _rand.NextFloat(0, 0.5f);
-                            sphereMaterial = new Metal(albedo, fuzz);
-                            world.Add(new Sphere(center, 0.2f, sphereMaterial));
-                        }
-                        else
-                        {
-                            // Glass
-                            sphereMaterial = new Dielectric(1.5f);
-                            world.Add(new Sphere(center, 0.2f, sphereMaterial));
-                        }
-                    }
-                }
-            }
-
-            var material1 = new Dielectric(1.5f);
-            world.Add(new Sphere(new Vec3(0, 1, 0), 1.0f, material1));
-
-            var material2 = new Lambertian(new Vec3(0.4f, 0.2f, 0.1f));
-            world.Add(new Sphere(new Vec3(-4, 1, 0), 1.0f, material2));
-
-            var material3 = new Metal(new Vec3(0.7f, 0.6f, 0.5f), 0.0f);
-            world.Add(new Sphere(new Vec3(4, 1, 0), 1.0f, material3));
-
-            var scene = new Scene();
-            scene.Add(BVHNode.Root(world, 0, 1.0f));
-
-            return scene;
-        }
-
-        private static Camera SetupCamera(double aspectRatio)
-        {
-            var lookFrom = new Vec3(13, 2, 3);
-            var lookAt = new Vec3(0, 0, 0);
-            var vUp = new Vec3(0, 1, 0);
-            var focusDistance = 10;
-            var aperture = 0.15f;
-
-            return new Camera(lookFrom, lookAt, vUp, 20, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
         }
 
         private static void PrintFile(int imageWidth, int imageHeight, List<Vec3> pixels, string renderName)

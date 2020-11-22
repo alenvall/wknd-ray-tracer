@@ -5,7 +5,7 @@ namespace WeekendRayTracer
     {
         static void Main()
         {
-            new RayTracer().Run();
+            RayTracer.Run();
         }
 
     }

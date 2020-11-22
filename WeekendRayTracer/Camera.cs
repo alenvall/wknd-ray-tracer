@@ -21,12 +21,13 @@ namespace WeekendRayTracer
         private static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
         private static Random Rand => random.Value;
 
-        public Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vUp, float verticalFovDeg, float aspectRatio, float aperture, float focusDistance, float time0, float time1)
+        public Camera(Vec3 lookFrom, Vec3 lookAt, float verticalFovDeg, float aspectRatio, float aperture, float focusDistance, float time0, float time1)
         {
             var theta = verticalFovDeg.ToRadians();
             var h = (float)Math.Tan(theta / 2);
             var viewportHeight = 2.0f * h;
             var viewportWidth = aspectRatio * viewportHeight;
+            var vUp = new Vec3(0, 1, 0);
 
             W = (lookFrom - lookAt).Unit();
             U = (vUp.Cross(W)).Unit();
@@ -40,6 +41,16 @@ namespace WeekendRayTracer
             LensRadius = aperture / 2;
             Time0 = time0;
             Time1 = time1;
+        }
+
+        public static Camera StandardCamera(double aspectRatio)
+        {
+            var lookFrom = new Vec3(13, 2, 3);
+            var lookAt = new Vec3(0, 0, 0);
+            var focusDistance = 10;
+            var aperture = 0.15f;
+
+            return new Camera(lookFrom, lookAt, 20, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
         }
 
         public Ray GetRay(float s, float t)
