@@ -55,7 +55,7 @@ namespace WeekendRayTracer.Models
             var outwardNormal = (P - Center(ray.Time)) / Radius;
             var frontFace = ray.Direction.Dot(outwardNormal) < 0;
             var faceNormal = frontFace ? outwardNormal : -outwardNormal;
-            result = new HitResult(T, P, faceNormal, frontFace, Material);
+            result = new HitResult(T, P, faceNormal, frontFace, Material, 0, 0);
 
             return true;
         }

@@ -17,6 +17,22 @@ namespace WeekendRayTracer.Models
             Material = material;
         }
 
+        public static void GetSphereUV(Vec3 p, out float u, out float v)
+        {
+            // p: a given point on the sphere of radius one, centered at the origin.
+            // u: returned value [0,1] of angle around the Y axis from X=-1.
+            // v: returned value [0,1] of angle from Y=-1 to Y=+1.
+            //     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+            //     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+            //     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+
+            var theta = Math.Acos(-p.Y);
+            var phi = Math.Atan2(-p.Z, p.X) + Math.PI;
+
+            u = (float)(phi / (2 * Math.PI));
+            v = (float)(theta / Math.PI);
+        }
+
         public bool Hit(ref HitResult result, in Ray ray, float tMin, float tMax)
         {
             var oc = ray.Origin - Center;
@@ -49,7 +65,8 @@ namespace WeekendRayTracer.Models
             var outwardNormal = (P - Center) / Radius;
             var frontFace = ray.Direction.Dot(outwardNormal) < 0;
             var faceNormal = frontFace ? outwardNormal : -outwardNormal;
-            result = new HitResult(T, P, faceNormal, frontFace, Material);
+            GetSphereUV(outwardNormal, out float u, out float v);
+            result = new HitResult(T, P, faceNormal, frontFace, Material, u, v);
             return true;
         }
 

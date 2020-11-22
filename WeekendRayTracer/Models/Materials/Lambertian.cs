@@ -1,14 +1,20 @@
-﻿using WeekendRayTracer.Models.Tracing;
+﻿using WeekendRayTracer.Models.Textures;
+using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer.Models.Materials
 {
     public readonly struct Lambertian : IMaterial
     {
-        private Vec3 Albedo { get; }
+        private ITexture Albedo { get; }
 
         public Lambertian(Vec3 albedo)
         {
-            Albedo = albedo;
+            Albedo = new SolidColor(albedo);
+        }
+
+        public Lambertian(ITexture texture)
+        {
+            Albedo = texture;
         }
 
         public bool Scatter(ref ScatterResult scatterResult, in Ray ray, in HitResult hitResult)
@@ -21,7 +27,9 @@ namespace WeekendRayTracer.Models.Materials
             }
 
             var scatteredRay = new Ray(hitResult.P, scatterDirection, ray.Time);
-            scatterResult = new ScatterResult(scatteredRay, Albedo);
+            var attenuation = Albedo.GetColorValue(hitResult.U, hitResult.V, hitResult.P);
+
+            scatterResult = new ScatterResult(scatteredRay, attenuation);
 
             return true;
         }
