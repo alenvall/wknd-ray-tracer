@@ -50,8 +50,17 @@ namespace WeekendRayTracer.Models
             var frontFace = ray.Direction.Dot(outwardNormal) < 0;
             var faceNormal = frontFace ? outwardNormal : -outwardNormal;
             result = new HitResult(T, P, faceNormal, frontFace, Material);
+            return true;
+        }
+
+        public bool BoundingBox(ref AABB box, float time0, float time1)
+        {
+            box = new AABB(
+                Center - new Vec3(Radius, Radius, Radius),
+                Center + new Vec3(Radius, Radius, Radius));
 
             return true;
         }
+
     }
 }

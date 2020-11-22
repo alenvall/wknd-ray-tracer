@@ -60,6 +60,21 @@ namespace WeekendRayTracer.Models
             return true;
         }
 
+        public bool BoundingBox(ref AABB box, float time0, float time1)
+        {
+            var box0 = new AABB(
+                Center(time0) - new Vec3(Radius, Radius, Radius),
+                Center(time0) + new Vec3(Radius, Radius, Radius));
+
+            var box1 = new AABB(
+                Center(time1) - new Vec3(Radius, Radius, Radius),
+                Center(time1) + new Vec3(Radius, Radius, Radius));
+
+            box = AABB.SurroundingBox(box0, box1);
+
+            return true;
+        }
+
         private Vec3 Center(float time)
         {
             return Center0 + ((time - Time0) / (Time1 - Time0)) * (Center1 - Center0);

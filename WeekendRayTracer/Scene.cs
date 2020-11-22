@@ -1,16 +1,21 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using WeekendRayTracer.Models;
 using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer
 {
-    public readonly struct Scene : IHittable
+    public struct Scene : IHittable
     {
-        private IHittable[] array { get; }
+        public List<IHittable> Objects { get; set; }
 
-        public Scene(IList<IHittable> objects)
+        public void Add(IHittable hittable)
         {
-            array = objects.ToArray();
+            if (Objects == null)
+            {
+                Objects = new List<IHittable>();
+            }
+
+            Objects.Add(hittable);
         }
 
         public bool Hit(ref HitResult finalResult, in Ray ray, float tMin, float tMax)
@@ -18,9 +23,8 @@ namespace WeekendRayTracer
             var closestSoFar = tMax;
             var hitAnything = false;
 
-            for (int i = 0; i < array.Length; i++)
+            foreach (var obj in Objects)
             {
-                var obj = array[i];
                 var tempResult = new HitResult();
                 if (obj.Hit(ref tempResult, ray, tMin, closestSoFar))
                 {
@@ -31,6 +35,30 @@ namespace WeekendRayTracer
             }
 
             return hitAnything;
+        }
+
+        public bool BoundingBox(ref AABB box, float time0, float time1)
+        {
+            if (Objects.Count == 0)
+            {
+                return false;
+            }
+
+            AABB tempBox = new AABB();
+            var firstBox = true;
+
+            foreach (var obj in Objects)
+            {
+                if (!obj.BoundingBox(ref tempBox, time0, time1))
+                {
+                    return false;
+                }
+
+                box = firstBox ? tempBox : AABB.SurroundingBox(box, tempBox);
+                firstBox = false;
+            }
+
+            return true;
         }
 
     }
