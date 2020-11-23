@@ -67,11 +67,13 @@ namespace WeekendRayTracer
 
         public static Scene RandomSphereScene(int complexity)
         {
+            var scene = new Scene();
             var rand = new Random();
-            var objects = new List<IHittable>();
 
             var checker = new CheckerTexture(new Vec3(0.2f, 0.3f, 0.1f), new Vec3(0.9f, 0.9f, 0.9f));
-            objects.Add(new Sphere(new Vec3(0, -1000, 0), 1000, new Lambertian(checker)));
+            scene.Add(new Sphere(new Vec3(0, -1000, 0), 1000, new Lambertian(checker)));
+
+            var objects = new List<IHittable>();
 
             for (int a = -complexity; a < complexity; a++)
             {
@@ -119,7 +121,6 @@ namespace WeekendRayTracer
             var material3 = new Metal(new Vec3(0.7f, 0.6f, 0.5f), 0.0f);
             objects.Add(new Sphere(new Vec3(4, 1, 0), 1.0f, material3));
 
-            var scene = new Scene();
             scene.Add(BVHNode.Root(objects, 0, 1.0f));
 
             return scene;
