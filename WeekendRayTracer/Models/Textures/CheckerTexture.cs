@@ -15,21 +15,21 @@ namespace WeekendRayTracer.Models.Textures
 
         public CheckerTexture(Vec3 color1, Vec3 color2)
         {
-            Even = new SolidColor(color1);
-            Odd = new SolidColor(color2);
+            Even = new ColorTexture(color1);
+            Odd = new ColorTexture(color2);
         }
 
-        public Vec3 GetColorValue(float u, float v, Vec3 point)
+        public Vec3 GetColorValue(float u, float v, in Vec3 point)
         {
             var sines = Math.Sin(10 * point.X) * Math.Sin(10 * point.Y) * Math.Sin(10 * point.Z);
 
             if (sines < 0)
             {
-                return Odd.GetColorValue(u, v, point);
+                return Odd.GetColorValue(u, v, in point);
             }
             else
             {
-                return Even.GetColorValue(u, v, point);
+                return Even.GetColorValue(u, v, in point);
             }
         }
     }

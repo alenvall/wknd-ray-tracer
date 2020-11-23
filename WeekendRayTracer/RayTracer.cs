@@ -29,16 +29,18 @@ namespace WeekendRayTracer
             Camera camera;
             Scene scene;
 
-            switch (1)
+            var vFov = 20;
+            var focusDistance = 10;
+            var aperture = 0.15f;
+            var lookAt = new Vec3(0, 0, 0);
+            var lookFrom = new Vec3(13, 2, 3);
+
+            switch (2)
             {
                 case 1:
-                    var vFov = 20;
-                    var focusDistance = 10;
-                    var aperture = 0.15f;
-                    var lookAt = new Vec3(0, 0, 0);
-                    var lookFrom = new Vec3(13, 2, 3);
-                    camera =  new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
-                    scene = Scene.TwoSpheres();
+                    camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
+                    scene = Scene.TwoCheckerSpheres();
+                    break;
                     break;
 
                 default:

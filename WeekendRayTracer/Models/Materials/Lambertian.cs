@@ -9,7 +9,7 @@ namespace WeekendRayTracer.Models.Materials
 
         public Lambertian(Vec3 albedo)
         {
-            Albedo = new SolidColor(albedo);
+            Albedo = new ColorTexture(albedo);
         }
 
         public Lambertian(ITexture texture)

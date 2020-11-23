@@ -126,7 +126,7 @@ namespace WeekendRayTracer
             return scene;
         }
 
-        public static Scene TwoSpheres()
+        public static Scene TwoCheckerSpheres()
         {
             var objects = new List<IHittable>();
 
