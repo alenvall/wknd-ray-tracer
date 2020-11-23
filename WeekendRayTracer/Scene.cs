@@ -140,5 +140,19 @@ namespace WeekendRayTracer
             return scene;
         }
 
+        public static Scene TwoPerlinSpheres()
+        {
+            var objects = new List<IHittable>();
+
+            var noise = new NoiseTexture(4);
+            objects.Add(new Sphere(new Vec3(0, -1000, 0), 1000, new Lambertian(noise)));
+            objects.Add(new Sphere(new Vec3(0, 2, 0), 2, new Lambertian(noise)));
+
+            var scene = new Scene();
+            scene.Add(BVHNode.Root(objects, 0, 1));
+
+            return scene;
+        }
+
     }
 }

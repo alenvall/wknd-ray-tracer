@@ -18,7 +18,7 @@ namespace WeekendRayTracer
         public static void Run()
         {
             var aspectRatio = 16.0 / 9.0;
-            var imageWidth = 400;
+            var imageWidth = 600;
             var imageHeight = (int)(imageWidth / aspectRatio);
             var samplesPerPixel = 50;
             var maxDepth = 50;
@@ -41,6 +41,10 @@ namespace WeekendRayTracer
                     camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
                     scene = Scene.TwoCheckerSpheres();
                     break;
+
+                case 2:
+                    camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
+                    scene = Scene.TwoPerlinSpheres();
                     break;
 
                 default:
