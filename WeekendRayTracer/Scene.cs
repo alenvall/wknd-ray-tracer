@@ -154,5 +154,15 @@ namespace WeekendRayTracer
             return scene;
         }
 
+        public static Scene EarthSphere()
+        {
+            var scene = new Scene();
+
+            var earth = new ImageTexture("earthmap.jpg");
+            scene.Add(new Sphere(new Vec3(0, 0, 0), 2, new Lambertian(earth)));
+
+            return scene;
+        }
+
     }
 }

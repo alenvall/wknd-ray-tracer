@@ -35,7 +35,7 @@ namespace WeekendRayTracer
             var lookAt = new Vec3(0, 0, 0);
             var lookFrom = new Vec3(13, 2, 3);
 
-            switch (2)
+            switch (3)
             {
                 case 1:
                     camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
@@ -45,6 +45,11 @@ namespace WeekendRayTracer
                 case 2:
                     camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
                     scene = Scene.TwoPerlinSpheres();
+                    break;
+
+                case 3:
+                    camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
+                    scene = Scene.EarthSphere();
                     break;
 
                 default:
@@ -57,7 +62,7 @@ namespace WeekendRayTracer
             stopwatch.Start();
 
             var image = RenderParallel(imageWidth, imageHeight, samplesPerPixel, maxDepth, camera, scene);
-            //var image = RenderSequential(imageWidth, imageHeight, samplesPerPixel, maxDepth, camera, world);
+            //var image = RenderSequential(imageWidth, imageHeight, samplesPerPixel, maxDepth, camera, scene);
             stopwatch.Stop();
 
             Console.WriteLine($"\nFinished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
