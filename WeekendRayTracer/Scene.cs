@@ -164,5 +164,19 @@ namespace WeekendRayTracer
             return scene;
         }
 
+        public static Scene SimpleLight()
+        {
+            var scene = new Scene();
+
+            var noise = new NoiseTexture(4);
+            scene.Add(new Sphere(new Vec3(0, -1000, 0), 1000, new Lambertian(noise)));
+            scene.Add(new Sphere(new Vec3(0, 2, 0), 2, new Lambertian(noise)));
+
+            var diffLight = new DiffuseLight(new Vec3(4, 4, 4));
+            scene.Add(new XYRect(3, 5, 1, 3, -2, diffLight));
+
+            return scene;
+        }
+
     }
 }

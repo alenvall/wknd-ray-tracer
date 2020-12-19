@@ -42,6 +42,11 @@ namespace WeekendRayTracer.Models.Materials
             return true;
         }
 
+        public Vec3 Emitted(float u, float v, in Vec3 point)
+        {
+            return new Vec3(0, 0, 0);
+        }
+
         private static double Reflectance(double cosine, double refractionRatio)
         {
             // Schlick's approximation 

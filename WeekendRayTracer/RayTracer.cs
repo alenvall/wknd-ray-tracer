@@ -31,11 +31,12 @@ namespace WeekendRayTracer
 
             var vFov = 20;
             var focusDistance = 10;
-            var aperture = 0.15f;
+            var aperture = 0f;
             var lookAt = new Vec3(0, 0, 0);
             var lookFrom = new Vec3(13, 2, 3);
+            var background = new Vec3(0.70f, 0.80f, 1.00f);
 
-            switch (3)
+            switch (4)
             {
                 case 1:
                     camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
@@ -52,7 +53,16 @@ namespace WeekendRayTracer
                     scene = Scene.EarthSphere();
                     break;
 
+                case 4:
+                    lookFrom = new Vec3(26, 3, 6);
+                    lookAt = new Vec3(0, 2, 0);
+                    background = new Vec3(0, 0, 0);
+                    camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
+                    scene = Scene.SimpleLight();
+                    break;
+
                 default:
+                    aperture = 0.15f;
                     camera = Camera.StandardCamera(aspectRatio);
                     scene = Scene.RandomSphereScene(complexity);
                     break;
@@ -61,8 +71,8 @@ namespace WeekendRayTracer
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var image = RenderParallel(imageWidth, imageHeight, samplesPerPixel, maxDepth, camera, scene);
-            //var image = RenderSequential(imageWidth, imageHeight, samplesPerPixel, maxDepth, camera, scene);
+            var image = RenderParallel(imageWidth, imageHeight, samplesPerPixel, maxDepth, camera, scene, background);
+            //var image = RenderSequential(imageWidth, imageHeight, samplesPerPixel, maxDepth, camera, scene, background);
             stopwatch.Stop();
 
             Console.WriteLine($"\nFinished in {stopwatch.Elapsed:hh\\:mm\\:ss\\:fff}\n");
@@ -72,7 +82,7 @@ namespace WeekendRayTracer
             Console.ReadKey();
         }
 
-        private static List<Vec3> RenderParallel(int imageWidth, int imageHeight, int samples, int maxDepth, Camera camera, IHittable scene)
+        private static List<Vec3> RenderParallel(int imageWidth, int imageHeight, int samples, int maxDepth, Camera camera, IHittable scene, Vec3 background)
         {
             var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
             var totalPixels = imageHeight * imageWidth;
@@ -84,7 +94,7 @@ namespace WeekendRayTracer
             {
                 Parallel.For(1, imageWidth + 1, column =>
                 {
-                    var pixel = RenderPixel(imageWidth, imageHeight, samples, maxDepth, row, column, random, ref camera, ref scene);
+                    var pixel = RenderPixel(imageWidth, imageHeight, samples, maxDepth, row, column, random, ref camera, ref scene, in background);
                     var index = (row - 1) * imageWidth + column;
 
                     queue.Enqueue(new KeyValuePair<int, Vec3>(index, pixel));
@@ -96,7 +106,7 @@ namespace WeekendRayTracer
             return queue.OrderBy(pair => pair.Key).Select(pair => pair.Value).ToList();
         }
 
-        private static List<Vec3> RenderSequential(int imageWidth, int imageHeight, int samples, int maxDepth, Camera camera, IHittable scene)
+        private static List<Vec3> RenderSequential(int imageWidth, int imageHeight, int samples, int maxDepth, Camera camera, IHittable scene, Vec3 background)
         {
             var pixels = new List<Vec3>();
             var totalPixels = imageHeight * imageWidth;
@@ -108,7 +118,7 @@ namespace WeekendRayTracer
             {
                 for (int column = 1; column <= imageWidth; column++)
                 {
-                    pixels.Add(RenderPixel(imageWidth, imageHeight, samples, maxDepth, row, column, random, ref camera, ref scene));
+                    pixels.Add(RenderPixel(imageWidth, imageHeight, samples, maxDepth, row, column, random, ref camera, ref scene, background));
                 }
 
                 Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * pixels.Count / totalPixels));
@@ -117,7 +127,7 @@ namespace WeekendRayTracer
             return pixels;
         }
 
-        private static Vec3 RenderPixel(int imageWidth, int imageHeight, int samples, int maxDepth, int row, int column, ThreadLocal<Random> random, ref Camera camera, ref IHittable scene)
+        private static Vec3 RenderPixel(int imageWidth, int imageHeight, int samples, int maxDepth, int row, int column, ThreadLocal<Random> random, ref Camera camera, ref IHittable scene, in Vec3 background)
         {
             var color = new Vec3(0, 0, 0);
             for (int s = 1; s <= samples; s++)
@@ -127,7 +137,7 @@ namespace WeekendRayTracer
                 var u = (i + random.Value.NextFloat()) / (imageWidth - 1);
                 var v = (j + random.Value.NextFloat()) / (imageHeight - 1);
                 var ray = camera.GetRay(u, v);
-                color += RayColor(in ray, maxDepth, ref scene);
+                color += RayColor(in ray, background, maxDepth, ref scene);
             }
 
             var scale = 1.0 / samples;
@@ -142,7 +152,7 @@ namespace WeekendRayTracer
             return new Vec3(clampedRed, clampedGreen, clampedBlue);
         }
 
-        private static Vec3 RayColor(in Ray ray, int depth, ref IHittable target)
+        private static Vec3 RayColor(in Ray ray, in Vec3 background, int depth, ref IHittable target)
         {
             if (depth <= 0)
             {
@@ -152,18 +162,22 @@ namespace WeekendRayTracer
             HitResult hitResult = new HitResult();
             if (target.Hit(ref hitResult, ray, 0.001f, float.PositiveInfinity))
             {
+                var emitted = hitResult.Material.Emitted(hitResult.U, hitResult.V, hitResult.P);
+
                 var scatterResult = new ScatterResult();
                 if (hitResult.Material.Scatter(ref scatterResult, ray, hitResult))
                 {
-                    return scatterResult.Attenuation * RayColor(scatterResult.ScatteredRay, depth - 1, ref target);
+                    return emitted + scatterResult.Attenuation * RayColor(scatterResult.ScatteredRay, background, depth - 1, ref target);
                 }
-
-                return new Vec3(0, 0, 0);
+                else
+                {
+                    return emitted;
+                }
             }
-
-            var directionUnit = ray.Direction.Unit();
-            var t = 0.5f * (directionUnit.Y + 1.0f);
-            return (1.0f - t) * new Vec3(1.0f, 1.0f, 1.0f) + t * new Vec3(0.5f, 0.7f, 1.0f);
+            else
+            {
+                return background;
+            }
         }
 
         private static void PrintFile(int imageWidth, int imageHeight, List<Vec3> pixels, string renderName)
