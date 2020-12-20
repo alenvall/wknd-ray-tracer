@@ -7,7 +7,6 @@ namespace WeekendRayTracer.Models.Materials
     {
         public ITexture Albedo { get; }
 
-
         public Isotropic(Vec3 color)
         {
             Albedo = new ColorTexture(color);

@@ -17,8 +17,7 @@ namespace WeekendRayTracer.Models
 
         private BVHNode(in IHittable[] objects, int start, int end, float time0, float time1)
         {
-            var rand = new Random();
-            Comparison<IHittable> comparer = rand.Next(0, 3) switch
+            Comparison<IHittable> comparer = StaticRandom.Next(0, 3) switch
             {
                 0 => CompareX,
                 1 => CompareY,

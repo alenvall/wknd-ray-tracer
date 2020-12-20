@@ -35,7 +35,7 @@ namespace WeekendRayTracer.Models
             return true;
         }
 
-        public bool Hit(ref HitResult hitResult, in Ray ray, float tMin, float tMax)
+        public bool Hit(ref HitResult result, in Ray ray, float tMin, float tMax)
         {
             // Check X
             var invD = 1.0f / ray.Direction.X;

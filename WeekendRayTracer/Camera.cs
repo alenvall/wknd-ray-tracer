@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using WeekendRayTracer.Extensions;
 using WeekendRayTracer.Models;
 using WeekendRayTracer.Models.Tracing;
@@ -18,8 +17,6 @@ namespace WeekendRayTracer
         private float LensRadius { get; }
         private float Time0 { get; }
         private float Time1 { get; }
-        private static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
-        private static Random Rand => random.Value;
 
         public Camera(Vec3 lookFrom, Vec3 lookAt, float verticalFovDeg, float aspectRatio, float aperture, float focusDistance, float time0, float time1)
         {
@@ -59,7 +56,7 @@ namespace WeekendRayTracer
             var offset = U * randomRay.X + V * randomRay.Y;
             var direction = LowerLeftCorner + s * Horizontal + t * Vertical - Origin;
 
-            return new Ray(Origin + offset, direction - offset, Rand.NextFloat(Time0, Time1));
+            return new Ray(Origin + offset, direction - offset, StaticRandom.NextFloat(Time0, Time1));
         }
     }
 }

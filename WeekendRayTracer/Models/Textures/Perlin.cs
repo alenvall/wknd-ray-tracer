@@ -13,7 +13,6 @@ namespace WeekendRayTracer.Models.Textures
 
         public Perlin()
         {
-            var rand = new Random();
             RandomVectors = new Vec3[PointCount];
 
             for (int i = 0; i < PointCount; i++)
@@ -21,9 +20,9 @@ namespace WeekendRayTracer.Models.Textures
                 RandomVectors[i] = Vec3.Random(-1, 1).Unit();
             }
 
-            PermX = GeneratePermutation(rand);
-            PermY = GeneratePermutation(rand);
-            PermZ = GeneratePermutation(rand);
+            PermX = GeneratePermutation();
+            PermY = GeneratePermutation();
+            PermZ = GeneratePermutation();
         }
 
         public float GetTurbulence(in Vec3 point, int depth = 7)
@@ -44,7 +43,7 @@ namespace WeekendRayTracer.Models.Textures
             return Math.Abs(accumulated);
         }
 
-        private static int[] GeneratePermutation(Random rand)
+        private static int[] GeneratePermutation()
         {
             var array = new int[PointCount];
 
@@ -53,16 +52,16 @@ namespace WeekendRayTracer.Models.Textures
                 array[i] = i;
             }
 
-            Permute(ref array, PointCount, rand);
+            Permute(ref array, PointCount);
 
             return array;
         }
 
-        private static void Permute(ref int[] values, int n, Random rand)
+        private static void Permute(ref int[] values, int n)
         {
             for (int i = n - 1; i > 0; i--)
             {
-                int target = rand.Next(0, i + 1);
+                int target = StaticRandom.Next(0, i + 1);
                 var temp = values[i];
                 values[i] = values[target];
                 values[target] = temp;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using WeekendRayTracer.Extensions;
 using WeekendRayTracer.Models;
 using WeekendRayTracer.Models.Materials;
 using WeekendRayTracer.Models.Textures;
@@ -68,7 +67,6 @@ namespace WeekendRayTracer
         public static Scene RandomSphereScene(int complexity)
         {
             var scene = new Scene();
-            var rand = new Random();
 
             var checker = new CheckerTexture(new Vec3(0.2f, 0.3f, 0.1f), new Vec3(0.9f, 0.9f, 0.9f));
             scene.Add(new Sphere(new Vec3(0, -1000, 0), 1000, new Lambertian(checker)));
@@ -79,8 +77,8 @@ namespace WeekendRayTracer
             {
                 for (int b = -complexity; b < complexity; b++)
                 {
-                    var chooseMaterial = rand.NextDouble();
-                    var center = new Vec3(a + 0.9f + rand.NextFloat(), 0.2f, b + 0.9f * rand.NextFloat());
+                    var chooseMaterial = StaticRandom.NextDouble();
+                    var center = new Vec3(a + 0.9f + StaticRandom.NextFloat(), 0.2f, b + 0.9f * StaticRandom.NextFloat());
 
                     if ((center - new Vec3(4, 0.2f, 0)).Length() > 0.9f)
                     {
@@ -91,14 +89,14 @@ namespace WeekendRayTracer
                             // Diffuse
                             var albedo = Vec3.Random() * Vec3.Random();
                             sphereMaterial = new Lambertian(albedo);
-                            var center2 = center + new Vec3(0, rand.NextFloat(0, 0.5f), 0);
+                            var center2 = center + new Vec3(0, StaticRandom.NextFloat(0, 0.5f), 0);
                             objects.Add(new Sphere(center, 0.2f, sphereMaterial));
                         }
                         else if (chooseMaterial < 0.95)
                         {
                             // Metal
                             var albedo = Vec3.Random(0.5f, 1);
-                            var fuzz = rand.NextFloat(0, 0.5f);
+                            var fuzz = StaticRandom.NextFloat(0, 0.5f);
                             sphereMaterial = new Metal(albedo, fuzz);
                             objects.Add(new Sphere(center, 0.2f, sphereMaterial));
                         }

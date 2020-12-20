@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer.Models.Materials
@@ -7,10 +6,6 @@ namespace WeekendRayTracer.Models.Materials
     public readonly struct Dielectric : IMaterial
     {
         private float RefractionIndex { get; }
-
-        private static int _seed = Environment.TickCount;
-        private static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref _seed)));
-        private static Random Rand => random.Value;
 
         public Dielectric(float refractionIndex)
         {
@@ -28,7 +23,7 @@ namespace WeekendRayTracer.Models.Materials
             var cannotRefract = refractionRatio * sinTheta > 1.0;
 
             Vec3 direction;
-            if (cannotRefract || Reflectance(cosTheta, refractionRatio) > Rand.NextDouble())
+            if (cannotRefract || Reflectance(cosTheta, refractionRatio) > StaticRandom.NextDouble())
             {
                 direction = directionUnit.Reflect(result.Normal);
             }

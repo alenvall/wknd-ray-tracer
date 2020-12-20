@@ -5,9 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using WeekendRayTracer.Extensions;
 using WeekendRayTracer.Models;
 using WeekendRayTracer.Models.Tracing;
 
@@ -105,15 +103,13 @@ namespace WeekendRayTracer
         {
             var queue = new ConcurrentQueue<KeyValuePair<int, Vec3>>();
             var totalPixels = imageHeight * imageWidth;
-            int seed = Environment.TickCount;
-            var random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
 
             Console.Write("Rendering scene... 0%");
             Parallel.For(1, imageHeight + 1, row =>
             {
                 Parallel.For(1, imageWidth + 1, column =>
                 {
-                    var pixel = RenderPixel(imageWidth, imageHeight, samples, maxDepth, row, column, random, ref camera, ref scene, in background);
+                    var pixel = RenderPixel(imageWidth, imageHeight, samples, maxDepth, row, column, ref camera, ref scene, in background);
                     var index = (row - 1) * imageWidth + column;
 
                     queue.Enqueue(new KeyValuePair<int, Vec3>(index, pixel));
@@ -129,15 +125,13 @@ namespace WeekendRayTracer
         {
             var pixels = new List<Vec3>();
             var totalPixels = imageHeight * imageWidth;
-            int seed = Environment.TickCount;
-            var random = new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
 
             Console.Write("Rendering scene... 0%");
             for (int row = 1; row <= imageHeight; row++)
             {
                 for (int column = 1; column <= imageWidth; column++)
                 {
-                    pixels.Add(RenderPixel(imageWidth, imageHeight, samples, maxDepth, row, column, random, ref camera, ref scene, background));
+                    pixels.Add(RenderPixel(imageWidth, imageHeight, samples, maxDepth, row, column, ref camera, ref scene, background));
                 }
 
                 Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * pixels.Count / totalPixels));
@@ -146,15 +140,15 @@ namespace WeekendRayTracer
             return pixels;
         }
 
-        private static Vec3 RenderPixel(int imageWidth, int imageHeight, int samples, int maxDepth, int row, int column, ThreadLocal<Random> random, ref Camera camera, ref IHittable scene, in Vec3 background)
+        private static Vec3 RenderPixel(int imageWidth, int imageHeight, int samples, int maxDepth, int row, int column, ref Camera camera, ref IHittable scene, in Vec3 background)
         {
             var color = new Vec3(0, 0, 0);
             for (int s = 1; s <= samples; s++)
             {
                 var j = imageHeight - row;
                 var i = column - 1;
-                var u = (i + random.Value.NextFloat()) / (imageWidth - 1);
-                var v = (j + random.Value.NextFloat()) / (imageHeight - 1);
+                var u = (i + StaticRandom.NextFloat()) / (imageWidth - 1);
+                var v = (j + StaticRandom.NextFloat()) / (imageHeight - 1);
                 var ray = camera.GetRay(u, v);
                 color += RayColor(in ray, background, maxDepth, ref scene);
             }

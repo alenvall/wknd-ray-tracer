@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using WeekendRayTracer.Models.Materials;
 using WeekendRayTracer.Models.Textures;
 using WeekendRayTracer.Models.Tracing;
@@ -11,8 +10,6 @@ namespace WeekendRayTracer.Models
         public IHittable Boundary { get; }
         public IMaterial PhaseFunction { get; }
         float NegativeInverseDensity { get; }
-        private static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
-        private static Random Rand => random.Value;
 
         public ConstantDensityMedium(IHittable boundary, float density, ITexture texture)
         {
@@ -71,7 +68,7 @@ namespace WeekendRayTracer.Models
 
             var rayLength = ray.Direction.Length();
             var distanceInsideBoundary = (newTMax - newTMin) * rayLength;
-            var hitDistance = NegativeInverseDensity * Math.Log(Rand.NextDouble());
+            var hitDistance = NegativeInverseDensity * Math.Log(StaticRandom.NextDouble());
 
             if (hitDistance > distanceInsideBoundary)
             {
