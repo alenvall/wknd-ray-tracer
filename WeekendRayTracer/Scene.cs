@@ -178,5 +178,37 @@ namespace WeekendRayTracer
             return scene;
         }
 
+        public static Scene CornellBox()
+        {
+            var objects = new List<IHittable>();
+
+            var red = new Lambertian(new Vec3(0.65f, 0.05f, 0.05f));
+            var white = new Lambertian(new Vec3(0.73f, 0.73f, 0.73f));
+            var green = new Lambertian(new Vec3(0.12f, 0.45f, 0.15f));
+            var light = new DiffuseLight(new Vec3(15, 15, 15));
+
+            objects.Add(new YZRect(0, 555, 0, 555, 555, green));
+            objects.Add(new YZRect(0, 555, 0, 555, 0, red));
+            objects.Add(new XZRect(213, 343, 227, 332, 554, light));
+            objects.Add(new XZRect(0, 555, 0, 555, 0, white));
+            objects.Add(new XZRect(0, 555, 0, 555, 555, white));
+            objects.Add(new XYRect(0, 555, 0, 555, 555, white));
+
+            IHittable box1 = new Box(new Vec3(0, 0, 0), new Vec3(165, 330, 165), white);
+            box1 = new RotateY(box1, 15);
+            box1 = new Translate(box1, new Vec3(265, 0, 295));
+            objects.Add(box1);
+
+            IHittable box2 = new Box(new Vec3(0, 0, 0), new Vec3(165, 165, 165), white);
+            box2 = new RotateY(box2, -18);
+            box2 = new Translate(box2, new Vec3(130, 0, 65));
+            objects.Add(box2);
+
+            var scene = new Scene();
+            scene.Add(BVHNode.Root(objects, 0, 0));
+
+            return scene;
+        }
+
     }
 }
