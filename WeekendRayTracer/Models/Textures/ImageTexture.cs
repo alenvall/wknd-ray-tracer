@@ -17,7 +17,7 @@ namespace WeekendRayTracer.Models.Textures
         public ImageTexture(string fileName)
         {
             // Debug color & values if image fails to load
-            Data = new byte[3] { 211, 3, 252 }; 
+            Data = new byte[3] { 211, 3, 252 };
             Width = 1;
             Height = 1;
             BytesPerPixel = 3;
@@ -54,7 +54,7 @@ namespace WeekendRayTracer.Models.Textures
             v = 1 - Math.Clamp(v, 0, 1);
 
             int i = (int)(u * Width);
-            int j = (int)(v * Height);
+            int j = (int)(v * (Height - 1));
 
             var index = j * BytesPerScanline + i * BytesPerPixel;
             var red = Data[index + 2];
