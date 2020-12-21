@@ -244,5 +244,71 @@ namespace WeekendRayTracer
             return scene;
         }
 
+        public static Scene FinalBookScene()
+        {
+            var ground = new Lambertian(new Vec3(0.48f, 0.83f, 0.53f));
+            var boxes1 = new List<IHittable>();
+
+            var boxesPerSide = 20;
+            for (int i = 0; i < boxesPerSide; i++)
+            {
+                for (int j = 0; j < boxesPerSide; j++)
+                {
+                    var w = 100;
+                    var x0 = -1000 + i * w;
+                    var z0 = -1000 + j * w;
+                    var y0 = 0;
+                    var x1 = x0 + w;
+                    var y1 = StaticRandom.NextFloat(1, 101);
+                    var z1 = z0 + w;
+
+                    boxes1.Add(new Box(new Vec3(x0, y0, z0), new Vec3(x1, y1, z1), ground));
+                }
+            }
+
+            var objects = new List<IHittable>();
+            objects.Add(BVHNode.Root(boxes1, 0, 1));
+
+            var light = new DiffuseLight(new Vec3(7, 7, 7));
+            objects.Add(new XZRect(123, 423, 147, 412, 554, light));
+
+            var center1 = new Vec3(400, 400, 200);
+            var center2 = center1 + new Vec3(30, 0, 0);
+            var movingSphereMaterial = new Lambertian(new Vec3(0.7f, 0.3f, 0.1f));
+            objects.Add(new MovingSphere(center1, center2, 0, 1, 50, movingSphereMaterial));
+
+            objects.Add(new Sphere(new Vec3(260, 150, 45), 50, new Dielectric(1.5f)));
+            objects.Add(new Sphere(new Vec3(0, 150, 145), 50, new Metal(new Vec3(0.8f, 0.8f, 0.9f), 1)));
+
+            var boundary = new Sphere(new Vec3(360, 150, 145), 70, new Dielectric(1.5f));
+            objects.Add(boundary);
+            objects.Add(new ConstantDensityMedium(boundary, 0.2f, new Vec3(0.2f, 0.4f, 0.9f)));
+            boundary = new Sphere(new Vec3(0, 0, 0), 5000, new Dielectric(1.5f));
+            objects.Add(new ConstantDensityMedium(boundary, 0.0001f, new Vec3(1, 1, 1)));
+
+            var earthMaterial = new Lambertian(new ImageTexture("earthmap.jpg"));
+            objects.Add(new Sphere(new Vec3(400, 200, 400), 100, earthMaterial));
+
+            var perlinTexture = new NoiseTexture(0.1f);
+            objects.Add(new Sphere(new Vec3(220, 280, 300), 80, new Lambertian(perlinTexture)));
+
+            var boxes2 = new List<IHittable>();
+            var white = new Lambertian(new Vec3(0.73f, 0.73f, 0.73f));
+            int ns = 1000;
+            for (int j = 0; j < ns; j++)
+            {
+                boxes2.Add(new Sphere(Vec3.Random(0, 165), 10, white));
+            }
+
+            var rotated = new RotateY(BVHNode.Root(boxes2, 0, 1), 15);
+            var translated = new Translate(rotated, new Vec3(-100, 270, 395));
+            objects.Add(translated);
+
+            var scene = new Scene();
+            scene.Add(BVHNode.Root(objects, 0, 1));
+
+            return scene;
+        }
+
     }
 }

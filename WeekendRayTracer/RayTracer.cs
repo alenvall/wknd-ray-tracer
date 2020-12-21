@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WeekendRayTracer.Models;
 using WeekendRayTracer.Models.Tracing;
@@ -15,14 +16,13 @@ namespace WeekendRayTracer
     {
         public static void Run()
         {
-            //var aspectRatio = 16.0 / 9.0;
-            var aspectRatio = 1;
-            var imageWidth = 600;
+            var aspectRatio = 1; // 16.0 / 9.0;
+            var imageWidth = 400;
             var imageHeight = (int)(imageWidth / aspectRatio);
-            var samplesPerPixel = 50;
+            var samplesPerPixel = 100;
             var maxDepth = 50;
             var complexity = 5;
-            var renderName = $"{imageWidth}x{imageHeight}_{complexity}_{samplesPerPixel}_{maxDepth}";
+            var renderName = $"{imageWidth}x{imageHeight}_{samplesPerPixel}_{maxDepth}";
 
             Console.WriteLine("Setting up scene and camera...");
             Camera camera;
@@ -35,7 +35,7 @@ namespace WeekendRayTracer
             var lookFrom = new Vec3(13, 2, 3);
             var background = new Vec3(0.70f, 0.80f, 1.00f);
 
-            switch (6)
+            switch (7)
             {
                 case 1:
                     camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
@@ -76,6 +76,15 @@ namespace WeekendRayTracer
                     vFov = 40;
                     camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
                     scene = Scene.CornellSmoke();
+                    break;
+
+                case 7:
+                    lookFrom = new Vec3(478, 278, -600);
+                    lookAt = new Vec3(278, 278, 0);
+                    background = new Vec3(0, 0, 0);
+                    vFov = 40;
+                    camera = new Camera(lookFrom, lookAt, vFov, (float)aspectRatio, aperture, focusDistance, 0.0f, 1.0f);
+                    scene = Scene.FinalBookScene();
                     break;
 
                 default:
