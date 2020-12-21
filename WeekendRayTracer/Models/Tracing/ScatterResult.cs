@@ -1,5 +1,4 @@
 ﻿
-
 namespace WeekendRayTracer.Models.Tracing
 {
     public readonly ref struct ScatterResult

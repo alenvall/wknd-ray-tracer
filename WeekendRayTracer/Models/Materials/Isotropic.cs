@@ -3,32 +3,24 @@ using WeekendRayTracer.Models.Tracing;
 
 namespace WeekendRayTracer.Models.Materials
 {
-    public readonly struct Lambertian : IMaterial
+    public readonly struct Isotropic : IMaterial
     {
-        private ITexture Albedo { get; }
+        public ITexture Albedo { get; }
 
-        public Lambertian(Vec3 albedo)
+        public Isotropic(Vec3 color)
         {
-            Albedo = new ColorTexture(albedo);
+            Albedo = new ColorTexture(color);
         }
 
-        public Lambertian(ITexture texture)
+        public Isotropic(ITexture texture)
         {
             Albedo = texture;
         }
 
         public bool Scatter(ref ScatterResult scatterResult, in Ray ray, in HitResult hitResult)
         {
-            var scatterDirection = hitResult.Normal + Vec3.RandomUnitVector();
-
-            if (scatterDirection.NearZero())
-            {
-                scatterDirection = hitResult.Normal;
-            }
-
-            var scatteredRay = new Ray(hitResult.P, scatterDirection, ray.Time);
+            var scatteredRay = new Ray(hitResult.P, Vec3.RandomInUnitSphere(), ray.Time);
             var attenuation = Albedo.GetColorValue(hitResult.U, hitResult.V, hitResult.P);
-
             scatterResult = new ScatterResult(scatteredRay, attenuation);
 
             return true;
