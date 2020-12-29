@@ -31,6 +31,13 @@ namespace WeekendRayTracer.Models
         public bool Hit(ref HitResult result, in Ray ray, float tMin, float tMax)
         {
             var t = (K - ray.Origin.Z) / ray.Direction.Z;
+            if (float.IsNaN(t) || float.IsInfinity(t))
+            {
+                // Hack to avoid dividing by zero and causing NaN to get passed along or 
+                // dividing zero by zero and passing Infinity along
+                return false;
+            }
+
             if (t < tMin || t > tMax)
             {
                 return false;

@@ -21,9 +21,10 @@ namespace WeekendRayTracer.Models.Materials
             if (scatteredRay.Direction.Dot(hitResult.Normal) > 0)
             {
                 scatterResult = new ScatterResult(scatteredRay, Albedo);
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public Vec3 Emitted(float u, float v, in Vec3 point)

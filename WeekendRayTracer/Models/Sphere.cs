@@ -26,8 +26,13 @@ namespace WeekendRayTracer.Models
             //     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
             //     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
 
-            var theta = Math.Acos(-p.Y);
-            var phi = Math.Atan2(-p.Z, p.X) + Math.PI;
+            // Clamp values since they might be sligthly outside bounds due to floating point shenanigans, which would cause acos()/atan2() to return NaN
+            var x = Math.Clamp(p.X, -1, 1);
+            var y = Math.Clamp(p.Y, -1, 1);
+            var z = Math.Clamp(p.Z, -1, 1);
+
+            var theta = Math.Acos(-y);
+            var phi = Math.Atan2(-z, x) + Math.PI;
 
             u = (float)(phi / (2 * Math.PI));
             v = (float)(theta / Math.PI);

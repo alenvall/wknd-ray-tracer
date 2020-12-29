@@ -124,7 +124,7 @@ namespace WeekendRayTracer
                     queue.Enqueue(new KeyValuePair<int, Vec3>(index, pixel));
                 });
 
-                Console.Write("\rRendering scene... {0}% ", Math.Round((double)100 * queue.Count / totalPixels));
+                Console.Write("\rRendering scene... {0}% ", Math.Floor((double)100 * queue.Count / totalPixels));
             });
 
             return queue.OrderBy(pair => pair.Key).Select(pair => pair.Value).ToList();
